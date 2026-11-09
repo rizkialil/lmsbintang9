@@ -141,7 +141,7 @@
                 </div>
 
                 <div class="pt-2">
-                    <button type="submit" id="btn-submit-login" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+                    <button type="submit" id="btn-submit-login" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
                         <span>LOGIN</span>
                     </button>
                 </div>
@@ -1929,8 +1929,22 @@
             }
         };
 
+        // ================= HELPER SPINNER MODERN & STATUS TOMBOL =================
+        function getModernSpinnerHtml(text = 'Memuat...', size = 'w-4 h-4') {
+            return `<svg class="animate-spin inline-block ${size} text-white shrink-0 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span class="font-medium tracking-wide">${text}</span>`;
+        }
+
+        function resetLoginButton() {
+            const btn = document.getElementById('btn-submit-login');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<span>LOGIN</span>`;
+            }
+        }
+
         // ================= AUTHENTICATION & LOGIN HANDLERS =================
         window.switchLoginType = function(type) {
+            resetLoginButton();
             state.currentLoginType = type;
             const tabGuru = document.getElementById('tab-login-guru');
             const tabAdmin = document.getElementById('tab-login-admin');
@@ -1964,7 +1978,7 @@
             const password = document.getElementById('login-password').value;
             const btn = document.getElementById('btn-submit-login');
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memvalidasi...`;
+            btn.innerHTML = getModernSpinnerHtml('Memvalidasi...');
 
             try {
                 if (state.currentLoginType === 'admin') {
@@ -2034,8 +2048,7 @@
             } catch (err) {
                 showToast(err.message || 'Login gagal, periksa kredensial Anda.', 'error');
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>LOGIN</span>`;
+                resetLoginButton();
             }
         };
 
@@ -2050,6 +2063,7 @@
                     localStorage.removeItem('lms_session_user');
                     localStorage.removeItem('lms_active_panel');
                 } catch(e) {}
+                resetLoginButton();
                 document.getElementById('view-app').classList.add('hidden');
                 document.getElementById('view-login').classList.remove('hidden');
                 document.getElementById('form-login').reset();
@@ -2122,6 +2136,7 @@
 
         // ================= INISIALISASI TAMPILAN DASHBOARD =================
         function initAppView(targetPanel = null) {
+            resetLoginButton();
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-app').classList.remove('hidden');
 
@@ -3504,7 +3519,7 @@
             const submitBtn = e.target.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengunggah...`;
+                submitBtn.innerHTML = getModernSpinnerHtml('Mengunggah...');
             }
 
             try {
@@ -3630,7 +3645,7 @@
             const submitBtn = e.target.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mempublikasikan...`;
+                submitBtn.innerHTML = getModernSpinnerHtml('Mempublikasikan...');
             }
 
             try {
@@ -4103,7 +4118,7 @@
             const submitBtn = e.target.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Mengirimkan...`;
+                submitBtn.innerHTML = getModernSpinnerHtml('Mengirimkan...');
             }
 
             try {
@@ -4534,13 +4549,14 @@
                 // Mode Preview / Mock Lokal
                 autoSetupDatabase();
                 checkAndRestoreSession();
+                resetLoginButton();
             } else {
                 // Mode Live Supabase Asli
                 const hasSession = localStorage.getItem('lms_session_user');
                 const btnSubmit = document.getElementById('btn-submit-login');
                 if (hasSession && btnSubmit) {
                     btnSubmit.disabled = true;
-                    btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memulihkan Sesi...`;
+                    btnSubmit.innerHTML = getModernSpinnerHtml('Memulihkan Sesi...');
                 }
 
                 try {
@@ -4550,10 +4566,7 @@
                 }
 
                 const restored = checkAndRestoreSession();
-                if (!restored && btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = `<span>LOGIN</span>`;
-                }
+                resetLoginButton();
             }
         });
     </script>
