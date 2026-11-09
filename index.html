@@ -14,6 +14,7 @@
     
     <!-- Meta Theme -->
     <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
@@ -934,15 +935,13 @@
                 <!-- Bagian Khusus Guru -->
                 <div id="field-guru-only" class="space-y-4 pt-2 border-t border-slate-100">
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-semibold text-slate-600">Pilih Mata Pelajaran yang Diampu</label>
-                            <span class="text-[10px] text-brand-600 font-medium">Bisa pilih lebih dari satu</span>
-                        </div>
-                        <div id="container-guru-mapel-list" class="max-h-48 overflow-y-auto p-2 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Mata Pelajaran yang Diampu</label>
+                        <select id="manage-user-mapel-select" onchange="handleAddSubjectChip(this.value)" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 bg-white">
                             <!-- Populated dynamically from state.db.subjects -->
-                        </div>
-                        <div class="mt-2">
-                            <input type="text" id="manage-user-mapel-custom" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500 placeholder:text-slate-400" placeholder="Mapel manual / tambahan jika belum ada di master (opsional, pisahkan koma)">
+                        </select>
+                        <!-- Badge / Chip Mapel Terpilih -->
+                        <div id="container-selected-mapel-chips" class="flex flex-wrap gap-1.5 mt-2.5">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
                     <!-- Checkbox Jabatan Wali Kelas -->
@@ -2528,15 +2527,20 @@
             }
         };
 
+        // Array State untuk Mapel Guru yang sedang dipilih di Modal User
+        let currentSelectedMapels = [];
+
         // Modal Form User
         window.openAddUserModal = function() {
             document.getElementById('modal-user-title').innerText = 'Tambah Pengguna Baru';
             document.getElementById('form-manage-user').reset();
             document.getElementById('manage-user-id').value = '';
+            currentSelectedMapels = [];
             
-            // Isi dropdown kelas & daftar mapel
+            // Isi dropdown kelas & dropdown mapel
             populateClassDropdowns();
-            populateSubjectCheckboxes([]);
+            populateSubjectDropdown();
+            renderSelectedMapelChips();
             toggleUserFormRoleFields();
             openModal('modal-user');
         };
@@ -2557,7 +2561,9 @@
             toggleUserFormRoleFields();
 
             if (user.role === 'guru') {
-                populateSubjectCheckboxes(user.mataPelajaran || []);
+                currentSelectedMapels = Array.isArray(user.mataPelajaran) ? [...user.mataPelajaran] : [];
+                populateSubjectDropdown();
+                renderSelectedMapelChips();
                 document.getElementById('manage-user-is-wali').checked = !!user.isWaliKelas;
                 toggleWaliSelectField();
                 if (user.isWaliKelas) {
@@ -2609,41 +2615,72 @@
             });
         }
 
-        // Checklist Otomatis Mata Pelajaran untuk Guru dari Data Master (state.db.subjects)
-        function populateSubjectCheckboxes(selectedMapels = []) {
-            const container = document.getElementById('container-guru-mapel-list');
-            if (!container) return;
-            container.innerHTML = '';
+        // ================= DROPDOWN MAPEL GURU (MINIMALIS & PRAKTIS) =================
+        function populateSubjectDropdown() {
+            const select = document.getElementById('manage-user-mapel-select');
+            if (!select) return;
+            select.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.innerText = '-- Pilih Mata Pelajaran --';
+            select.appendChild(placeholder);
 
             const subjects = state.db.subjects || [];
             if (subjects.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full py-4 px-2 text-center text-slate-400 text-xs">
-                        <i class="fa-solid fa-circle-info mr-1 text-amber-500"></i>
-                        Belum ada data mata pelajaran di sistem. Silakan tambahkan terlebih dahulu di menu <strong>Kelas & Mapel</strong>.
-                    </div>
-                `;
-            } else {
-                subjects.forEach(s => {
-                    const isChecked = selectedMapels.includes(s.nama);
-                    const label = document.createElement('label');
-                    label.className = `flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition select-none ${isChecked ? 'bg-blue-50/70 border-brand-300 text-brand-900 shadow-xs' : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700'}`;
-                    label.innerHTML = `
-                        <input type="checkbox" name="guru-mapel-checkbox" value="${s.nama}" ${isChecked ? 'checked' : ''} onchange="this.closest('label').classList.toggle('bg-blue-50/70', this.checked); this.closest('label').classList.toggle('border-brand-300', this.checked); this.closest('label').classList.toggle('text-brand-900', this.checked);" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
-                        <span class="font-semibold text-xs truncate flex-1">${s.nama}</span>
-                        <span class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded font-bold">${s.kode}</span>
-                    `;
-                    container.appendChild(label);
-                });
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.disabled = true;
+                opt.innerText = '(Belum ada mapel - Tambahkan di menu Kelas & Mapel)';
+                select.appendChild(opt);
+                return;
             }
 
-            // Mapel kustom yang tidak ada dalam daftar master subjects
-            const customMapels = selectedMapels.filter(m => !subjects.some(s => s.nama === m));
-            const customInput = document.getElementById('manage-user-mapel-custom');
-            if (customInput) {
-                customInput.value = customMapels.join(', ');
-            }
+            subjects.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.nama;
+                opt.innerText = `${s.nama} (${s.kode})`;
+                select.appendChild(opt);
+            });
         }
+
+        function renderSelectedMapelChips() {
+            const container = document.getElementById('container-selected-mapel-chips');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (currentSelectedMapels.length === 0) {
+                container.innerHTML = `<span class="text-[11px] text-slate-400 italic">Belum ada mapel dipilih. Pilih dari dropdown di atas.</span>`;
+                return;
+            }
+
+            currentSelectedMapels.forEach(mapel => {
+                const chip = document.createElement('span');
+                chip.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-brand-700 text-xs font-semibold border border-blue-200 shadow-xs transition';
+                chip.innerHTML = `
+                    <span>${mapel}</span>
+                    <button type="button" onclick="handleRemoveSubjectChip('${mapel.replace(/'/g, "\\'")}')" class="text-blue-400 hover:text-rose-600 focus:outline-none transition" title="Hapus ${mapel}">
+                        <i class="fa-solid fa-xmark text-[11px]"></i>
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        window.handleAddSubjectChip = function(mapelName) {
+            if (!mapelName) return;
+            if (!currentSelectedMapels.includes(mapelName)) {
+                currentSelectedMapels.push(mapelName);
+                renderSelectedMapelChips();
+            }
+            const select = document.getElementById('manage-user-mapel-select');
+            if (select) select.value = '';
+        };
+
+        window.handleRemoveSubjectChip = function(mapelName) {
+            currentSelectedMapels = currentSelectedMapels.filter(m => m !== mapelName);
+            renderSelectedMapelChips();
+        };
 
         window.handleSaveUser = async function(e) {
             e.preventDefault();
@@ -2670,22 +2707,15 @@
             };
 
             if (role === 'guru') {
-                const checkedCheckboxes = Array.from(document.querySelectorAll('input[name="guru-mapel-checkbox"]:checked')).map(cb => cb.value.trim());
-                const customRaw = (document.getElementById('manage-user-mapel-custom')?.value || '').trim();
-                const customArr = customRaw ? customRaw.split(',').map(m => m.trim()).filter(m => m.length > 0) : [];
-                
-                // Gabungkan mapel dari checklist dan input manual tanpa duplikasi
-                const mapelArr = Array.from(new Set([...checkedCheckboxes, ...customArr]));
-
-                if (mapelArr.length === 0) {
-                    showToast('Harap pilih minimal satu mata pelajaran yang diampu oleh guru.', 'warning');
+                if (currentSelectedMapels.length === 0) {
+                    showToast('Harap pilih minimal satu mata pelajaran untuk guru.', 'warning');
                     return;
                 }
 
                 const isWali = document.getElementById('manage-user-is-wali').checked;
                 const kelasBinaan = isWali ? document.getElementById('manage-user-kelas-binaan').value : '';
 
-                userData.mataPelajaran = mapelArr;
+                userData.mataPelajaran = [...currentSelectedMapels];
                 userData.isWaliKelas = isWali;
                 userData.kelasBinaan = kelasBinaan;
 
@@ -2892,7 +2922,7 @@
             closeModal('modal-add-subject');
             showToast(`Mata pelajaran ${nama} berhasil disimpan.`, 'success');
             renderAdminClassesAndSubjects();
-            populateSubjectCheckboxes();
+            populateSubjectDropdown();
         };
 
         window.deleteSubject = function(id) {
@@ -2907,7 +2937,7 @@
                     }
                 }
                 renderAdminClassesAndSubjects();
-                populateSubjectCheckboxes();
+                populateSubjectDropdown();
                 showToast('Mata pelajaran telah dihapus.', 'info');
             });
         };
