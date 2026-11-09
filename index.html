@@ -185,7 +185,11 @@
             <nav id="desktop-nav" class="flex-1 px-3 space-y-1 overflow-y-auto"></nav>
 
             <!-- Bottom Actions -->
-            <div class="p-4 border-t border-slate-100">
+            <div class="p-4 border-t border-slate-100 space-y-1">
+                <button type="button" onclick="openModalChangePassword()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-semibold transition">
+                    <i class="fa-solid fa-key text-amber-500"></i>
+                    <span>Ganti Password</span>
+                </button>
                 <button type="button" onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-semibold transition">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                     <span>Keluar Aplikasi</span>
@@ -209,7 +213,11 @@
                 </div>
 
                 <!-- Right Action Bar -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button type="button" onclick="openModalChangePassword()" title="Ganti Password Akun" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-xs transition">
+                        <i class="fa-solid fa-key text-amber-500"></i>
+                        <span class="hidden sm:inline">Ganti Password</span>
+                    </button>
                     <button type="button" onclick="refreshLiveData()" title="Sinkronkan data dari cloud" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-xs transition">
                         <i id="btn-sync-icon" class="fa-solid fa-arrows-rotate text-brand-600"></i>
                         <span>Sinkron Data</span>
@@ -1557,6 +1565,60 @@
         </div>
     </div>
 
+    <!-- ================= MODAL: GANTI PASSWORD AKUN ================= -->
+    <div id="modal-change-password" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-sm w-full shadow-2xl border border-slate-100 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Ganti Password</h3>
+                        <p id="change-pwd-user-label" class="text-[11px] text-slate-500">Akun Pengguna</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeModal('modal-change-password')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="form-change-password" onsubmit="handleSaveNewPassword(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password Baru</label>
+                    <div class="relative">
+                        <input type="password" id="change-pwd-new" required minlength="6" class="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500" placeholder="Minimal 6 karakter">
+                        <button type="button" onclick="togglePasswordVisibility('change-pwd-new', this)" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Konfirmasi Password Baru</label>
+                    <div class="relative">
+                        <input type="password" id="change-pwd-confirm" required minlength="6" class="w-full px-3 py-2.5 pr-10 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500" placeholder="Ketik ulang password baru">
+                        <button type="button" onclick="togglePasswordVisibility('change-pwd-confirm', this)" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="change-pwd-hint" class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500">
+                    <p><i class="fa-solid fa-circle-info text-brand-600 mr-1"></i> Password akan langsung diperbarui.</p>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-change-password')" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-change-pwd" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                        <span>Simpan Password</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ================= JAVASCRIPT UTAMA ================= -->
     <script type="module">
         // ================= KONFIGURASI SUPABASE =================
@@ -2320,6 +2382,111 @@
                 document.getElementById('form-login').reset();
                 showToast('Anda telah keluar dari sistem.', 'info');
             });
+        };
+
+        // ================= GANTI PASSWORD PENGGUNA (ADMIN VIA AUTH & USERS DB) =================
+        window.openModalChangePassword = function() {
+            const u = state.currentUser;
+            if (!u) return;
+            const form = document.getElementById('form-change-password');
+            if (form) form.reset();
+
+            const userLabel = document.getElementById('change-pwd-user-label');
+            if (userLabel) {
+                userLabel.innerText = `${u.namaLengkap} (${u.role.toUpperCase()})`;
+            }
+
+            const hint = document.getElementById('change-pwd-hint');
+            if (hint) {
+                if (u.role === 'admin') {
+                    hint.innerHTML = `<p><i class="fa-solid fa-shield-halved text-brand-600 mr-1"></i> Password akun Administrator akan langsung diperbarui secara aman pada <strong>Supabase Auth</strong>.</p>`;
+                } else {
+                    hint.innerHTML = `<p><i class="fa-solid fa-circle-info text-brand-600 mr-1"></i> Password akun Anda akan langsung disimpan ke database.</p>`;
+                }
+            }
+
+            openModal('modal-change-password');
+        };
+
+        window.handleSaveNewPassword = async function(e) {
+            e.preventDefault();
+            const newPwd = document.getElementById('change-pwd-new').value.trim();
+            const confirmPwd = document.getElementById('change-pwd-confirm').value.trim();
+            const btn = document.getElementById('btn-submit-change-pwd');
+
+            if (!newPwd || newPwd.length < 6) {
+                showToast('Password baru minimal harus 6 karakter.', 'warning');
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                showToast('Konfirmasi password tidak cocok dengan password baru.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = getModernSpinnerHtml('Menyimpan...');
+
+            try {
+                const u = state.currentUser;
+                if (!u) throw new Error('Sesi pengguna tidak valid.');
+
+                if (u.role === 'admin') {
+                    // Update password Admin di Supabase Auth
+                    if (!IS_PREVIEW && supabase) {
+                        const { data, error } = await supabase.auth.updateUser({
+                            password: newPwd
+                        });
+                        if (error) throw error;
+                    }
+
+                    // Update doc profil admin di state.db.users & Supabase jika ada
+                    const adminInDb = state.db.users.find(usr => usr.id === u.id || usr.username === u.username);
+                    if (adminInDb) {
+                        adminInDb.password = newPwd;
+                        if (!IS_PREVIEW && supabase) {
+                            try {
+                                await supabase.from('users').update({ password: newPwd }).eq('id', adminInDb.id);
+                            } catch(e){}
+                        }
+                    }
+                    u.password = newPwd;
+                    state.currentUser = u;
+                    try {
+                        localStorage.setItem('lms_session_user', JSON.stringify(u));
+                    } catch(e){}
+
+                    closeModal('modal-change-password');
+                    showToast('Password Administrator berhasil diperbarui di Supabase Auth!', 'success');
+                } else {
+                    // Update password Guru / Siswa / Kepsek di tabel users
+                    if (!IS_PREVIEW && supabase) {
+                        const { error } = await supabase.from('users').update({
+                            password: newPwd
+                        }).eq('id', u.id);
+                        if (error) throw error;
+                    }
+
+                    const targetUser = state.db.users.find(usr => usr.id === u.id);
+                    if (targetUser) {
+                        targetUser.password = newPwd;
+                    }
+                    u.password = newPwd;
+                    state.currentUser = u;
+                    try {
+                        localStorage.setItem('lms_session_user', JSON.stringify(u));
+                    } catch(e){}
+
+                    closeModal('modal-change-password');
+                    showToast('Password Anda berhasil diperbarui!', 'success');
+                }
+            } catch(err) {
+                console.error("Gagal ganti password:", err);
+                showToast('Gagal mengubah password: ' + (err.message || err), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Simpan Password</span>`;
+            }
         };
 
         // ================= PEMULIHAN SESI OTOMATIS =================
@@ -4580,7 +4747,7 @@
                     siswaMenunggakListEl.innerHTML = `
                         <div class="p-4 rounded-xl bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                            <span>Seluruh siswa telah menyelesaikan semua tugas.</span>
+                            <span>Hebat! Seluruh siswa telah menyelesaikan semua tugas yang ditugaskan.</span>
                         </div>
                     `;
                 } else {
