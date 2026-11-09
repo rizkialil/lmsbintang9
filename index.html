@@ -736,9 +736,69 @@
                         </div>
                     </div>
 
+                    <!-- ================= MONITORING PEMBELAJARAN SESUAI JADWAL HARI INI ================= -->
+                    <div class="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
+                                        <i class="fa-solid fa-calendar-check mr-1"></i> Monitoring Harian
+                                    </span>
+                                    <h3 class="text-base font-bold text-slate-900">Kepatuhan Mengajar Sesuai Jadwal</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1">Pantau apakah guru yang ada jadwal mengajar pada hari tersebut sudah mengirim materi atau tugas (fleksibel)</p>
+                            </div>
+                            <!-- Day Filter Selector -->
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs font-semibold text-slate-500">Pilih Hari:</label>
+                                <select id="kepsek-dashboard-day-select" onchange="renderKepsekDashboardDaySchedule()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-purple-700 bg-purple-50 focus:ring-2 focus:ring-purple-500 transition">
+                                    <option value="today">Hari Ini (<span id="kepsek-today-label">Senin</span>)</option>
+                                    <option value="Senin">Senin</option>
+                                    <option value="Selasa">Selasa</option>
+                                    <option value="Rabu">Rabu</option>
+                                    <option value="Kamis">Kamis</option>
+                                    <option value="Jumat">Jumat</option>
+                                    <option value="Sabtu">Sabtu</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Ringkasan Statistik Jadwal Hari Ini -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <span class="text-[11px] font-medium text-slate-500">Guru Terjadwal</span>
+                                <h4 id="stat-kepsek-day-total" class="text-2xl font-bold text-slate-900 mt-0.5">0</h4>
+                                <p class="text-[10px] text-slate-400 mt-1">Total jadwal pada hari terpilih</p>
+                            </div>
+                            <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+                                <span class="text-[11px] font-medium text-emerald-700">Sudah Kirim Pembelajaran</span>
+                                <h4 id="stat-kepsek-day-done" class="text-2xl font-bold text-emerald-700 mt-0.5">0</h4>
+                                <p class="text-[10px] text-emerald-600 mt-1">Materi saja / Tugas saja / Keduanya</p>
+                            </div>
+                            <div class="bg-rose-50/70 p-4 rounded-2xl border border-rose-100">
+                                <span class="text-[11px] font-medium text-rose-700">Belum Mengirim Pembelajaran</span>
+                                <h4 id="stat-kepsek-day-pending" class="text-2xl font-bold text-rose-700 mt-0.5">0</h4>
+                                <p class="text-[10px] text-rose-600 mt-1">Perlu diingatkan oleh pimpinan</p>
+                            </div>
+                        </div>
+
+                        <!-- Daftar Guru Terjadwal Hari Ini -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
+                                <span>Daftar Guru Terjadwal & Status Pengiriman:</span>
+                                <button onclick="navigateTo('kepsek-jadwal')" class="text-purple-600 hover:text-purple-700 font-bold">
+                                    Lihat Semua Jadwal &rarr;
+                                </button>
+                            </div>
+                            <div id="kepsek-day-schedule-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Ringkasan Perhatian Khusus -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Guru Belum Kirim Materi / Tugas -->
+                        <!-- Guru Pasif (Belum Ada Kiriman Sama Sekali) -->
                         <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -746,7 +806,7 @@
                                         <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
                                         Guru Perlu Perhatian
                                     </h4>
-                                    <p class="text-xs text-slate-400 mt-0.5">Guru yang belum kirim materi atau tugas</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">Guru yang belum mengirim materi maupun tugas sama sekali</p>
                                 </div>
                                 <button onclick="navigateTo('kepsek-guru')" class="text-xs text-purple-600 hover:text-purple-700 font-bold">
                                     Lihat Semua &rarr;
@@ -786,14 +846,25 @@
                                 <h3 class="text-base font-bold text-slate-900">Monitoring & Evaluasi Kinerja Guru</h3>
                                 <p class="text-xs text-slate-500">Pantau keaktifan bapak/ibu guru dalam menerbitkan materi dan tugas daring</p>
                             </div>
-                            <!-- Filter Keaktifan -->
-                            <div class="flex items-center gap-2">
+                            <!-- Filter Keaktifan & Hari -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select id="filter-kepsek-guru-hari" onchange="renderKepsekGuru()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-500">
+                                    <option value="all">Semua Hari Mengajar</option>
+                                    <option value="today">Terjadwal Hari Ini</option>
+                                    <option value="Senin">Hari Senin</option>
+                                    <option value="Selasa">Hari Selasa</option>
+                                    <option value="Rabu">Hari Rabu</option>
+                                    <option value="Kamis">Hari Kamis</option>
+                                    <option value="Jumat">Hari Jumat</option>
+                                    <option value="Sabtu">Hari Sabtu</option>
+                                </select>
                                 <select id="filter-kepsek-guru-status" onchange="renderKepsekGuru()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-purple-500">
-                                    <option value="all">Semua Status Guru</option>
+                                    <option value="all">Semua Status Pembelajaran</option>
+                                    <option value="aktif">Aktif / Tuntas (Materi/Tugas/Keduanya)</option>
                                     <option value="lengkap">Lengkap (Materi & Tugas)</option>
-                                    <option value="belum_tugas">Belum Kirim Tugas</option>
-                                    <option value="belum_materi">Belum Kirim Materi</option>
-                                    <option value="pasif">Belum Ada Aktivitas Sama Sekali</option>
+                                    <option value="materi_only">Kirim Materi Saja</option>
+                                    <option value="tugas_only">Kirim Tugas Saja</option>
+                                    <option value="pasif">Belum Kirim Sama Sekali (Pasif)</option>
                                 </select>
                             </div>
                         </div>
@@ -814,10 +885,10 @@
                                         <th class="p-3.5">NIP</th>
                                         <th class="p-3.5">Nama Guru</th>
                                         <th class="p-3.5">Mata Pelajaran</th>
-                                        <th class="p-3.5">Jabatan</th>
+                                        <th class="p-3.5">Jadwal Mengajar</th>
                                         <th class="p-3.5 text-center">Materi Terbit</th>
                                         <th class="p-3.5 text-center">Tugas Dibuat</th>
-                                        <th class="p-3.5 text-center">Status Aktivitas</th>
+                                        <th class="p-3.5 text-center">Status Pembelajaran</th>
                                     </tr>
                                 </thead>
                                 <tbody id="kepsek-guru-table-body" class="divide-y divide-slate-100 text-slate-700">
@@ -875,6 +946,75 @@
                                     </tr>
                                 </thead>
                                 <tbody id="kepsek-siswa-table-body" class="divide-y divide-slate-100 text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= PANEL JADWAL PELAJARAN (ADMIN, KEPSEK, GURU, SISWA) ================= -->
+                <section id="panel-schedules" class="role-panel hidden space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 id="schedule-panel-title" class="text-base font-bold text-slate-900">Jadwal Pelajaran Sekolah</h3>
+                                <p id="schedule-panel-subtitle" class="text-xs text-slate-500">Daftar alokasi mata pelajaran, kelas, dan guru pengampu per hari</p>
+                            </div>
+                            <!-- Aksi Tambah Jadwal (Khusus Admin) -->
+                            <div id="schedule-admin-actions" class="hidden flex items-center gap-2">
+                                <button type="button" onclick="openModalCreateSchedule()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Tambah Jadwal</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab Hari Pelajaran -->
+                        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-100 text-xs font-semibold scrollbar-none">
+                            <button type="button" onclick="filterScheduleByDay('all')" id="tab-day-all" class="px-3.5 py-2 rounded-xl transition bg-brand-50 text-brand-700 whitespace-nowrap">Semua Hari</button>
+                            <button type="button" onclick="filterScheduleByDay('Senin')" id="tab-day-Senin" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Senin</button>
+                            <button type="button" onclick="filterScheduleByDay('Selasa')" id="tab-day-Selasa" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Selasa</button>
+                            <button type="button" onclick="filterScheduleByDay('Rabu')" id="tab-day-Rabu" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Rabu</button>
+                            <button type="button" onclick="filterScheduleByDay('Kamis')" id="tab-day-Kamis" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Kamis</button>
+                            <button type="button" onclick="filterScheduleByDay('Jumat')" id="tab-day-Jumat" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Jumat</button>
+                            <button type="button" onclick="filterScheduleByDay('Sabtu')" id="tab-day-Sabtu" class="px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap">Sabtu</button>
+                        </div>
+
+                        <!-- Bar Filter & Pencarian -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="relative sm:col-span-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="search-schedule" oninput="renderScheduleTable()" placeholder="Cari mapel, guru, kelas..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+                            <div class="sm:col-span-1">
+                                <select id="filter-schedule-kelas" onchange="renderScheduleTable()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                                    <option value="all">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-1">
+                                <select id="filter-schedule-guru" onchange="renderScheduleTable()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                                    <option value="all">Semua Guru Pengampu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Jadwal Pelajaran -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                    <tr>
+                                        <th class="p-3.5">Hari & Jam</th>
+                                        <th class="p-3.5">Kelas</th>
+                                        <th class="p-3.5">Mata Pelajaran</th>
+                                        <th class="p-3.5">Guru Pengampu</th>
+                                        <th class="p-3.5 text-center">Status Pembelajaran</th>
+                                        <th id="th-schedule-actions" class="p-3.5 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schedule-table-body" class="divide-y divide-slate-100 text-slate-700">
                                     <!-- Populated dynamically -->
                                 </tbody>
                             </table>
@@ -1349,6 +1489,74 @@
         </div>
     </div>
 
+    <!-- ================= MODAL: TAMBAH / EDIT JADWAL PELAJARAN (ADMIN) ================= -->
+    <div id="modal-manage-schedule" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl border border-slate-100 my-8">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                <h3 id="modal-schedule-title" class="text-base font-bold text-slate-900">Tambah Jadwal Pelajaran</h3>
+                <button type="button" onclick="closeModal('modal-manage-schedule')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="form-manage-schedule" onsubmit="handleSaveScheduleSubmit(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="manage-schedule-id">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Hari Pelajaran</label>
+                    <select id="manage-schedule-hari" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jam Mulai</label>
+                        <input type="time" id="manage-schedule-mulai" required value="07:30" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jam Selesai</label>
+                        <input type="time" id="manage-schedule-selesai" required value="09:00" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Rombel / Kelas Target</label>
+                    <select id="manage-schedule-kelas" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Mata Pelajaran</label>
+                    <select id="manage-schedule-mapel" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Guru Pengampu</label>
+                    <select id="manage-schedule-guru" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-manage-schedule')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+                        Batal
+                    </button>
+                    <button type="submit" id="btn-submit-schedule" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
+                        <span>Simpan Jadwal</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- ================= JAVASCRIPT UTAMA ================= -->
     <script type="module">
         // ================= KONFIGURASI SUPABASE =================
@@ -1384,7 +1592,8 @@
                 subjects: [],
                 materials: [],
                 assignments: [],
-                submissions: []
+                submissions: [],
+                schedules: []
             }
         };
 
@@ -1555,6 +1764,34 @@
             };
         }
 
+        function mapScheduleFromDb(s) {
+            return {
+                id: s.id,
+                hari: s.hari,
+                kelas: s.kelas,
+                mapel: s.mapel,
+                guruId: s.guru_id || s.guruId || '',
+                guruNama: s.guru_nama || s.guruNama || '',
+                jamMulai: s.jam_mulai || s.jamMulai || '07:30',
+                jamSelesai: s.jam_selesai || s.jamSelesai || '09:00',
+                createdAt: s.created_at || s.createdAt || new Date().toISOString()
+            };
+        }
+
+        function mapScheduleToDb(s) {
+            return {
+                id: s.id,
+                hari: s.hari,
+                kelas: s.kelas,
+                mapel: s.mapel,
+                guru_id: s.guruId,
+                guru_nama: s.guruNama,
+                jam_mulai: s.jamMulai || '07:30',
+                jam_selesai: s.jamSelesai || '09:00',
+                created_at: s.createdAt || new Date().toISOString()
+            };
+        }
+
         // ================= SINKRONISASI DATA DARI CLOUD SUPABASE =================
         async function syncAllFromSupabase() {
             if (IS_PREVIEW || !supabase) return;
@@ -1565,25 +1802,29 @@
                     { data: sData, error: sErr },
                     { data: mData, error: mErr },
                     { data: aData, error: aErr },
-                    { data: subData, error: subErr }
+                    { data: subData, error: subErr },
+                    { data: schData, error: schErr }
                 ] = await Promise.all([
                     supabase.from('users').select('*'),
                     supabase.from('classes').select('*'),
                     supabase.from('subjects').select('*'),
                     supabase.from('materials').select('*'),
                     supabase.from('assignments').select('*'),
-                    supabase.from('submissions').select('*')
+                    supabase.from('submissions').select('*'),
+                    supabase.from('schedules').select('*')
                 ]);
 
                 if (uErr) console.warn("Sync users:", uErr);
                 if (cErr) console.warn("Sync classes:", cErr);
                 if (sErr) console.warn("Sync subjects:", sErr);
+                if (schErr) console.warn("Sync schedules (tabel baru belum dibuat di Supabase):", schErr);
                 if (mData) state.db.materials = mData.map(mapMaterialFromDb);
                 if (uData) state.db.users = uData.map(mapUserFromDb);
                 if (cData) state.db.classes = cData.map(mapClassFromDb);
                 if (sData) state.db.subjects = sData.map(mapSubjectFromDb);
                 if (aData) state.db.assignments = aData.map(mapAssignmentFromDb);
                 if (subData) state.db.submissions = subData.map(mapSubmissionFromDb);
+                if (schData) state.db.schedules = schData.map(mapScheduleFromDb);
             } catch (err) {
                 console.error("Gagal sinkronisasi data dari Supabase:", err);
                 showToast("Peringatan sinkronisasi database: " + (err.message || err), "error");
@@ -1832,6 +2073,16 @@
                     feedback: 'Luar biasa Bella, langkah pengerjaan sangat terstruktur dan tepat.',
                     submittedAt: new Date(Date.now() - 3600000).toISOString()
                 }
+            ];
+
+            // Jadwal Pelajaran Contoh
+            state.db.schedules = [
+                { id: 'sch_1', hari: 'Senin', kelas: 'X-IPA-1', mapel: 'Matematika', guruId: 'u2', guruNama: 'Budi Santoso, M.Pd', jamMulai: '07:30', jamSelesai: '09:00', createdAt: new Date().toISOString() },
+                { id: 'sch_2', hari: 'Senin', kelas: 'X-IPA-1', mapel: 'Bahasa Indonesia', guruId: 'u3', guruNama: 'Siti Aminah, S.Pd', jamMulai: '09:15', jamSelesai: '10:45', createdAt: new Date().toISOString() },
+                { id: 'sch_3', hari: 'Selasa', kelas: 'X-IPA-1', mapel: 'Fisika', guruId: 'u2', guruNama: 'Budi Santoso, M.Pd', jamMulai: '07:30', jamSelesai: '09:00', createdAt: new Date().toISOString() },
+                { id: 'sch_4', hari: 'Rabu', kelas: 'X-IPA-2', mapel: 'Matematika', guruId: 'u2', guruNama: 'Budi Santoso, M.Pd', jamMulai: '07:30', jamSelesai: '09:00', createdAt: new Date().toISOString() },
+                { id: 'sch_5', hari: 'Kamis', kelas: 'X-IPA-1', mapel: 'Biologi', guruId: 'u3', guruNama: 'Siti Aminah, S.Pd', jamMulai: '07:30', jamSelesai: '09:00', createdAt: new Date().toISOString() },
+                { id: 'sch_6', hari: 'Jumat', kelas: 'X-IPA-2', mapel: 'Bahasa Indonesia', guruId: 'u3', guruNama: 'Siti Aminah, S.Pd', jamMulai: '07:30', jamSelesai: '09:00', createdAt: new Date().toISOString() }
             ];
         }
 
@@ -2170,17 +2421,17 @@
             // Set initial panel
             let initialPanel = targetPanel;
             if (u.role === 'admin') {
-                const allowed = ['admin-dashboard', 'admin-users', 'admin-classes'];
+                const allowed = ['admin-dashboard', 'admin-users', 'admin-classes', 'admin-schedules'];
                 if (!allowed.includes(initialPanel)) initialPanel = 'admin-dashboard';
             } else if (u.role === 'kepsek') {
-                const allowed = ['kepsek-dashboard', 'kepsek-guru', 'kepsek-siswa'];
+                const allowed = ['kepsek-dashboard', 'kepsek-guru', 'kepsek-siswa', 'kepsek-jadwal'];
                 if (!allowed.includes(initialPanel)) initialPanel = 'kepsek-dashboard';
             } else if (u.role === 'guru') {
-                const allowed = ['guru-dashboard', 'guru-materi', 'guru-tugas'];
+                const allowed = ['guru-dashboard', 'guru-jadwal', 'guru-materi', 'guru-tugas'];
                 if (u.isWaliKelas) allowed.push('wali-siswa', 'wali-rekap');
                 if (!allowed.includes(initialPanel)) initialPanel = 'guru-dashboard';
             } else {
-                const allowed = ['siswa-dashboard', 'siswa-materi', 'siswa-tugas', 'siswa-nilai'];
+                const allowed = ['siswa-dashboard', 'siswa-jadwal', 'siswa-materi', 'siswa-tugas', 'siswa-nilai'];
                 if (!allowed.includes(initialPanel)) initialPanel = 'siswa-dashboard';
             }
             navigateTo(initialPanel);
@@ -2200,17 +2451,20 @@
                 menus = [
                     { id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
                     { id: 'admin-users', label: 'Kelola Pengguna', icon: 'fa-users-gear' },
-                    { id: 'admin-classes', label: 'Kelas & Mapel', icon: 'fa-shapes' }
+                    { id: 'admin-classes', label: 'Kelas & Mapel', icon: 'fa-shapes' },
+                    { id: 'admin-schedules', label: 'Jadwal Pelajaran', icon: 'fa-calendar-days' }
                 ];
             } else if (u.role === 'kepsek') {
                 menus = [
                     { id: 'kepsek-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
                     { id: 'kepsek-guru', label: 'Monitoring Guru', icon: 'fa-chalkboard-user' },
-                    { id: 'kepsek-siswa', label: 'Monitoring Siswa', icon: 'fa-user-check' }
+                    { id: 'kepsek-siswa', label: 'Monitoring Siswa', icon: 'fa-user-check' },
+                    { id: 'kepsek-jadwal', label: 'Jadwal Pelajaran', icon: 'fa-calendar-days' }
                 ];
             } else if (u.role === 'guru') {
                 menus = [
                     { id: 'guru-dashboard', label: 'Dashboard', icon: 'fa-gauge' },
+                    { id: 'guru-jadwal', label: 'Jadwal Mengajar', icon: 'fa-calendar-days' },
                     { id: 'guru-materi', label: 'Kelola Materi', icon: 'fa-file-lines' },
                     { id: 'guru-tugas', label: 'Kelola Tugas', icon: 'fa-list-check' }
                 ];
@@ -2222,6 +2476,7 @@
             } else if (u.role === 'siswa') {
                 menus = [
                     { id: 'siswa-dashboard', label: 'Beranda', icon: 'fa-house' },
+                    { id: 'siswa-jadwal', label: 'Jadwal Kelas', icon: 'fa-calendar-days' },
                     { id: 'siswa-materi', label: 'Materi Belajar', icon: 'fa-book-open' },
                     { id: 'siswa-tugas', label: 'Tugas Saya', icon: 'fa-pen-to-square' },
                     { id: 'siswa-nilai', label: 'Buku Nilai', icon: 'fa-award' }
@@ -2263,7 +2518,10 @@
             document.querySelectorAll('.role-panel').forEach(p => p.classList.add('hidden'));
 
             // Tampilkan panel yang dituju
-            const targetPanel = document.getElementById(`panel-${panelId}`);
+            let targetPanel = document.getElementById(`panel-${panelId}`);
+            if (!targetPanel && ['admin-schedules', 'kepsek-jadwal', 'guru-jadwal', 'siswa-jadwal'].includes(panelId)) {
+                targetPanel = document.getElementById('panel-schedules');
+            }
             if (targetPanel) {
                 targetPanel.classList.remove('hidden');
             }
@@ -2276,15 +2534,19 @@
                 'admin-dashboard': { t: 'Dashboard Administrator', s: 'Ringkasan statistik sekolah & akses cepat' },
                 'admin-users': { t: 'Manajemen Pengguna', s: 'Atur username, password, dan penugasan peran' },
                 'admin-classes': { t: 'Kelola Kelas & Mapel', s: 'Pengaturan rombongan belajar dan kurikulum mapel' },
+                'admin-schedules': { t: 'Jadwal Pelajaran Sekolah', s: 'Atur alokasi mata pelajaran, kelas, dan guru pengampu per hari' },
                 'kepsek-dashboard': { t: 'Dashboard Eksekutif Kepala Sekolah', s: 'Monitoring menyeluruh kegiatan pembelajaran daring guru dan siswa' },
                 'kepsek-guru': { t: 'Monitoring Keaktifan Guru', s: 'Pantau guru yang belum menerbitkan materi atau penugasan' },
                 'kepsek-siswa': { t: 'Monitoring Kepatuhan Siswa', s: 'Pantau siapa saja siswa yang belum mengirimkan tugas' },
+                'kepsek-jadwal': { t: 'Jadwal Pelajaran Sekolah', s: 'Pantau agenda mengajar seluruh guru dan kelas per hari' },
                 'guru-dashboard': { t: 'Dashboard Guru', s: 'Ringkasan kegiatan mengajar daring' },
+                'guru-jadwal': { t: 'Jadwal Mengajar Saya', s: 'Agenda jadwal mengajar mingguan dan jam pelajaran' },
                 'guru-materi': { t: 'Kelola Materi Pelajaran', s: 'Terbitkan dokumen PDF, Excel, Word, Gambar, atau Catatan Teks' },
                 'guru-tugas': { t: 'Kelola Tugas & Evaluasi', s: 'Periksa kiriman tugas siswa dan beri nilai' },
                 'wali-siswa': { t: `Kelola Siswa Binaan (${state.currentUser?.kelasBinaan || ''})`, s: 'Pengaturan mandiri akun dan password siswa kelas' },
                 'wali-rekap': { t: 'Rekapitulasi Nilai Binaan', s: 'Pantau kemajuan belajar siswa di kelas binaan Anda' },
                 'siswa-dashboard': { t: 'Beranda Belajar', s: 'Aktivitas tugas dan materi terkini' },
+                'siswa-jadwal': { t: 'Jadwal Pelajaran Kelas', s: 'Daftar mata pelajaran kelas Anda per hari' },
                 'siswa-materi': { t: 'Materi Pembelajaran', s: 'Akses materi teks dan berkas modul' },
                 'siswa-tugas': { t: 'Daftar Tugas Daring', s: 'Kirimkan tugas Anda sebelum batas waktu' },
                 'siswa-nilai': { t: 'Buku Nilai & Feedback', s: 'Hasil evaluasi dan skor dari bapak/ibu guru' }
@@ -2329,6 +2591,7 @@
             if (panelId === 'kepsek-dashboard') renderKepsekDashboard();
             if (panelId === 'kepsek-guru') renderKepsekGuru();
             if (panelId === 'kepsek-siswa') renderKepsekSiswa();
+            if (['admin-schedules', 'kepsek-jadwal', 'guru-jadwal', 'siswa-jadwal'].includes(panelId)) renderSchedulePanel(panelId);
             if (panelId === 'guru-dashboard') renderGuruDashboard();
             if (panelId === 'guru-materi') renderGuruMaterials();
             if (panelId === 'guru-tugas') renderGuruAssignments();
@@ -4252,41 +4515,29 @@
                 : 0;
             if (elKepatuhan) elKepatuhan.innerText = Math.min(compliancePct, 100) + '%';
 
-            // Ringkasan: Guru Perlu Perhatian (Guru yang belum kirim materi atau belum buat tugas)
+            // Kepatuhan Mengajar Sesuai Jadwal Hari Ini
+            renderKepsekDashboardDaySchedule();
+
+            // Ringkasan: Guru Pasif (Guru yang belum kirim materi maupun tugas sama sekali)
             const guruInaktifListEl = document.getElementById('kepsek-guru-inaktif-list');
             if (guruInaktifListEl) {
                 guruInaktifListEl.innerHTML = '';
                 
-                const guruPerluPerhatian = guruList.map(g => {
+                const guruPasif = guruList.filter(g => {
                     const matCount = materials.filter(m => m.guruId === g.id).length;
                     const asgCount = assignments.filter(a => a.guruId === g.id).length;
-                    return {
-                        guru: g,
-                        matCount,
-                        asgCount,
-                        needsAttention: matCount === 0 || asgCount === 0
-                    };
-                }).filter(item => item.needsAttention);
+                    return matCount === 0 && asgCount === 0;
+                });
 
-                if (guruPerluPerhatian.length === 0) {
+                if (guruPasif.length === 0) {
                     guruInaktifListEl.innerHTML = `
                         <div class="p-4 rounded-xl bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                            <span>Luar biasa! Seluruh bapak/ibu guru telah aktif menerbitkan materi dan tugas daring.</span>
+                            <span>Luar biasa! Seluruh bapak/ibu guru telah aktif menerbitkan pembelajaran (materi atau tugas).</span>
                         </div>
                     `;
                 } else {
-                    guruPerluPerhatian.forEach(item => {
-                        const g = item.guru;
-                        let issues = [];
-                        if (item.matCount === 0 && item.asgCount === 0) {
-                            issues.push('<span class="text-rose-600 font-semibold">Belum kirim materi & tugas</span>');
-                        } else if (item.matCount === 0) {
-                            issues.push('<span class="text-amber-600 font-semibold">Belum kirim materi</span>');
-                        } else if (item.asgCount === 0) {
-                            issues.push('<span class="text-amber-600 font-semibold">Belum buat tugas</span>');
-                        }
-
+                    guruPasif.forEach(g => {
                         const div = document.createElement('div');
                         div.className = 'p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 flex items-center justify-between text-xs transition';
                         div.innerHTML = `
@@ -4295,7 +4546,7 @@
                                 <p class="text-[11px] text-slate-500">${(g.mataPelajaran || []).join(', ') || 'Guru Mapel'}</p>
                             </div>
                             <div class="text-right">
-                                ${issues.join(', ')}
+                                <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">Belum Ada Kiriman</span>
                             </div>
                         `;
                         guruInaktifListEl.appendChild(div);
@@ -4329,7 +4580,7 @@
                     siswaMenunggakListEl.innerHTML = `
                         <div class="p-4 rounded-xl bg-emerald-50 text-emerald-800 text-xs flex items-center gap-2">
                             <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                            <span>Hebat! Seluruh siswa telah menyelesaikan semua tugas yang ditugaskan.</span>
+                            <span>Seluruh siswa telah menyelesaikan semua tugas.</span>
                         </div>
                     `;
                 } else {
@@ -4354,8 +4605,91 @@
             }
         }
 
+        window.renderKepsekDashboardDaySchedule = function() {
+            const daySelect = document.getElementById('kepsek-dashboard-day-select');
+            const container = document.getElementById('kepsek-day-schedule-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const realToday = hariNames[new Date().getDay()];
+            const todayLabel = document.getElementById('kepsek-today-label');
+            if (todayLabel) todayLabel.innerText = realToday;
+
+            let selectedDay = daySelect ? daySelect.value : 'today';
+            if (selectedDay === 'today') {
+                selectedDay = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].includes(realToday) ? realToday : 'Senin';
+            }
+
+            const daySchedules = (state.db.schedules || []).filter(s => s.hari === selectedDay);
+            const totalScheduled = daySchedules.length;
+
+            let doneCount = 0;
+            let pendingCount = 0;
+
+            if (totalScheduled === 0) {
+                container.innerHTML = `
+                    <div class="p-4 rounded-xl bg-slate-50 text-slate-500 text-xs text-center">
+                        <i class="fa-regular fa-calendar-xmark text-lg mb-1 block text-slate-400"></i>
+                        Tidak ada jadwal pelajaran yang terdaftar pada hari <strong>${selectedDay}</strong>.
+                    </div>
+                `;
+                const elTot = document.getElementById('stat-kepsek-day-total');
+                const elDone = document.getElementById('stat-kepsek-day-done');
+                const elPend = document.getElementById('stat-kepsek-day-pending');
+                if (elTot) elTot.innerText = 0;
+                if (elDone) elDone.innerText = 0;
+                if (elPend) elPend.innerText = 0;
+                return;
+            }
+
+            daySchedules.forEach(item => {
+                const hasMat = state.db.materials.some(m => m.guruId === item.guruId && (m.targetKelas === item.kelas || m.targetKelas === 'all') && (m.mapel === item.mapel || !item.mapel));
+                const hasAsg = state.db.assignments.some(a => a.guruId === item.guruId && (a.targetKelas === item.kelas || a.targetKelas === 'all') && (a.mapel === item.mapel || !item.mapel));
+
+                let statusBadge = '';
+                if (hasMat && hasAsg) {
+                    doneCount++;
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-circle-check mr-1"></i> Materi & Tugas</span>`;
+                } else if (hasMat) {
+                    doneCount++;
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800"><i class="fa-solid fa-book-open mr-1"></i> Materi Terbit</span>`;
+                } else if (hasAsg) {
+                    doneCount++;
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-list-check mr-1"></i> Tugas Terbit</span>`;
+                } else {
+                    pendingCount++;
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Belum Kirim</span>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'py-2.5 flex items-center justify-between text-xs gap-3 hover:bg-slate-50 px-2 rounded-xl transition';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="px-2 py-1 rounded-lg bg-purple-50 text-purple-700 font-mono font-bold text-[10px] whitespace-nowrap">${item.jamMulai} - ${item.jamSelesai}</span>
+                        <div class="truncate">
+                            <p class="font-bold text-slate-900 truncate">${item.guruNama}</p>
+                            <p class="text-[11px] text-slate-500 truncate">${item.mapel} &bull; Kelas ${item.kelas}</p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        ${statusBadge}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            const elTot = document.getElementById('stat-kepsek-day-total');
+            const elDone = document.getElementById('stat-kepsek-day-done');
+            const elPend = document.getElementById('stat-kepsek-day-pending');
+            if (elTot) elTot.innerText = totalScheduled;
+            if (elDone) elDone.innerText = doneCount;
+            if (elPend) elPend.innerText = pendingCount;
+        };
+
         window.renderKepsekGuru = function() {
             const query = (document.getElementById('search-kepsek-guru')?.value || '').toLowerCase();
+            const filterHari = document.getElementById('filter-kepsek-guru-hari')?.value || 'all';
             const filterStatus = document.getElementById('filter-kepsek-guru-status')?.value || 'all';
             const tbody = document.getElementById('kepsek-guru-table-body');
             if (!tbody) return;
@@ -4364,17 +4698,23 @@
             const guruList = state.db.users.filter(u => u.role === 'guru');
             const materials = state.db.materials;
             const assignments = state.db.assignments;
+            const schedules = state.db.schedules || [];
+
+            const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayName = hariNames[new Date().getDay()];
 
             const teacherData = guruList.map(g => {
                 const matCount = materials.filter(m => m.guruId === g.id).length;
                 const asgCount = assignments.filter(a => a.guruId === g.id).length;
+                const mySchedules = schedules.filter(s => s.guruId === g.id);
+                const scheduledDays = [...new Set(mySchedules.map(s => s.hari))];
+
                 let status = 'pasif';
                 if (matCount > 0 && asgCount > 0) status = 'lengkap';
-                else if (matCount > 0 && asgCount === 0) status = 'belum_tugas';
-                else if (matCount === 0 && asgCount > 0) status = 'belum_materi';
-                else status = 'pasif';
+                else if (matCount > 0) status = 'materi_only';
+                else if (asgCount > 0) status = 'tugas_only';
 
-                return { guru: g, matCount, asgCount, status };
+                return { guru: g, matCount, asgCount, status, scheduledDays };
             });
 
             const filtered = teacherData.filter(item => {
@@ -4384,7 +4724,17 @@
                     (g.mataPelajaran && g.mataPelajaran.some(m => m.toLowerCase().includes(query)));
 
                 if (!matchQuery) return false;
+
+                // Filter Hari
+                if (filterHari === 'today') {
+                    if (!item.scheduledDays.includes(todayName)) return false;
+                } else if (filterHari !== 'all') {
+                    if (!item.scheduledDays.includes(filterHari)) return false;
+                }
+
+                // Filter Status Fleksibel
                 if (filterStatus === 'all') return true;
+                if (filterStatus === 'aktif') return item.matCount > 0 || item.asgCount > 0;
                 return item.status === filterStatus;
             });
 
@@ -4398,13 +4748,17 @@
                 let badgeStatusHtml = '';
                 if (item.status === 'lengkap') {
                     badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Lengkap (Materi & Tugas)</span>`;
-                } else if (item.status === 'belum_tugas') {
-                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Belum Kirim Tugas</span>`;
-                } else if (item.status === 'belum_materi') {
-                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Belum Kirim Materi</span>`;
+                } else if (item.status === 'materi_only') {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-[10px] font-bold"><i class="fa-solid fa-book-open mr-1"></i>Aktif (Materi Saja)</span>`;
+                } else if (item.status === 'tugas_only') {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold"><i class="fa-solid fa-list-check mr-1"></i>Aktif (Tugas Saja)</span>`;
                 } else {
-                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>Belum Ada Aktivitas</span>`;
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold"><i class="fa-solid fa-circle-xmark mr-1"></i>Belum Ada Kiriman</span>`;
                 }
+
+                const daysBadges = item.scheduledDays.length > 0
+                    ? item.scheduledDays.map(d => `<span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${d === todayName ? 'bg-purple-100 text-purple-800 font-bold' : 'bg-slate-100 text-slate-600'}">${d}</span>`).join(' ')
+                    : '<span class="text-slate-400 italic">Belum diatur</span>';
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition';
@@ -4417,7 +4771,9 @@
                         </div>
                     </td>
                     <td class="p-3.5">
-                        ${g.isWaliKelas ? `<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">Wali Kelas ${g.kelasBinaan}</span>` : '<span class="text-slate-400">Guru Mapel</span>'}
+                        <div class="flex flex-wrap gap-1">
+                            ${daysBadges}
+                        </div>
                     </td>
                     <td class="p-3.5 text-center font-bold ${item.matCount > 0 ? 'text-purple-600' : 'text-slate-400'}">${item.matCount}</td>
                     <td class="p-3.5 text-center font-bold ${item.asgCount > 0 ? 'text-indigo-600' : 'text-slate-400'}">${item.asgCount}</td>
@@ -4425,6 +4781,329 @@
                 `;
                 tbody.appendChild(tr);
             });
+        };
+
+        // ================= LOGIKA JADWAL PELAJARAN =================
+        let currentScheduleDayFilter = 'all';
+        window.currentScheduleDayFilter = currentScheduleDayFilter;
+
+        window.filterScheduleByDay = function(day) {
+            currentScheduleDayFilter = day;
+            window.currentScheduleDayFilter = day;
+
+            ['all', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].forEach(d => {
+                const tab = document.getElementById(`tab-day-${d}`);
+                if (tab) {
+                    if (d === day) {
+                        tab.className = 'px-3.5 py-2 rounded-xl transition bg-brand-600 text-white shadow-sm whitespace-nowrap font-bold';
+                    } else {
+                        tab.className = 'px-3.5 py-2 rounded-xl transition text-slate-500 hover:bg-slate-100 whitespace-nowrap';
+                    }
+                }
+            });
+
+            renderScheduleTable();
+        };
+
+        window.renderSchedulePanel = function(panelId = state.activePanel) {
+            const u = state.currentUser;
+            const titleEl = document.getElementById('schedule-panel-title');
+            const subTitleEl = document.getElementById('schedule-panel-subtitle');
+            const adminActions = document.getElementById('schedule-admin-actions');
+            const thActions = document.getElementById('th-schedule-actions');
+
+            // Set role-based view customization
+            if (u.role === 'admin') {
+                if (titleEl) titleEl.innerText = 'Kelola Jadwal Pelajaran';
+                if (subTitleEl) subTitleEl.innerText = 'Atur jadwal mengajar guru, rombel kelas, dan mata pelajaran per hari';
+                if (adminActions) adminActions.classList.remove('hidden');
+                if (thActions) thActions.classList.remove('hidden');
+            } else if (u.role === 'kepsek') {
+                if (titleEl) titleEl.innerText = 'Jadwal Pelajaran Sekolah';
+                if (subTitleEl) subTitleEl.innerText = 'Pantau alokasi mengajar seluruh guru dan jam pelajaran';
+                if (adminActions) adminActions.classList.add('hidden');
+                if (thActions) thActions.classList.add('hidden');
+            } else if (u.role === 'guru') {
+                if (titleEl) titleEl.innerText = 'Jadwal Mengajar Saya';
+                if (subTitleEl) subTitleEl.innerText = 'Agenda mengajar kelas dan jam pelajaran mingguan Anda';
+                if (adminActions) adminActions.classList.add('hidden');
+                if (thActions) thActions.classList.add('hidden');
+            } else {
+                if (titleEl) titleEl.innerText = `Jadwal Pelajaran Kelas ${u.kelas || ''}`;
+                if (subTitleEl) subTitleEl.innerText = 'Daftar mata pelajaran yang harus Anda ikuti setiap harinya';
+                if (adminActions) adminActions.classList.add('hidden');
+                if (thActions) thActions.classList.add('hidden');
+            }
+
+            // Populate Filters
+            const selectKelas = document.getElementById('filter-schedule-kelas');
+            if (selectKelas) {
+                const prevVal = selectKelas.value;
+                selectKelas.innerHTML = '<option value="all">Semua Kelas</option>';
+                state.db.classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.namaKelas;
+                    opt.innerText = `Kelas ${c.namaKelas}`;
+                    selectKelas.appendChild(opt);
+                });
+                if (u.role === 'siswa' && u.kelas) {
+                    selectKelas.value = u.kelas;
+                    selectKelas.disabled = true;
+                } else if (prevVal) {
+                    selectKelas.value = prevVal;
+                }
+            }
+
+            const selectGuru = document.getElementById('filter-schedule-guru');
+            if (selectGuru) {
+                const prevVal = selectGuru.value;
+                selectGuru.innerHTML = '<option value="all">Semua Guru Pengampu</option>';
+                state.db.users.filter(usr => usr.role === 'guru').forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.innerText = g.namaLengkap;
+                    selectGuru.appendChild(opt);
+                });
+                if (u.role === 'guru') {
+                    selectGuru.value = u.id;
+                } else if (prevVal) {
+                    selectGuru.value = prevVal;
+                }
+            }
+
+            // Set default tab to current day if first time opening
+            const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayName = hariNames[new Date().getDay()];
+            if (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].includes(todayName)) {
+                const todayTab = document.getElementById(`tab-day-${todayName}`);
+                if (todayTab && !todayTab.innerText.includes('(Hari Ini)')) {
+                    todayTab.innerHTML = `${todayName} <span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] bg-amber-100 text-amber-700 font-bold">Hari Ini</span>`;
+                }
+            }
+
+            renderScheduleTable();
+        };
+
+        window.renderScheduleTable = function() {
+            const tbody = document.getElementById('schedule-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const u = state.currentUser;
+            const query = (document.getElementById('search-schedule')?.value || '').toLowerCase();
+            const filterKelas = document.getElementById('filter-schedule-kelas')?.value || 'all';
+            const filterGuru = document.getElementById('filter-schedule-guru')?.value || 'all';
+            const selectedDay = window.currentScheduleDayFilter || 'all';
+
+            let list = state.db.schedules || [];
+
+            // Urutkan hari dan jam mulai
+            const dayOrder = { 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 };
+            list = [...list].sort((a, b) => {
+                const dDiff = (dayOrder[a.hari] || 99) - (dayOrder[b.hari] || 99);
+                if (dDiff !== 0) return dDiff;
+                return (a.jamMulai || '').localeCompare(b.jamMulai || '');
+            });
+
+            const filtered = list.filter(item => {
+                if (selectedDay !== 'all' && item.hari !== selectedDay) return false;
+                if (filterKelas !== 'all' && item.kelas !== filterKelas) return false;
+                if (filterGuru !== 'all' && item.guruId !== filterGuru) return false;
+
+                if (query) {
+                    const matchQ = (item.mapel && item.mapel.toLowerCase().includes(query)) ||
+                                   (item.guruNama && item.guruNama.toLowerCase().includes(query)) ||
+                                   (item.kelas && item.kelas.toLowerCase().includes(query)) ||
+                                   (item.hari && item.hari.toLowerCase().includes(query));
+                    if (!matchQ) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                const colCount = u.role === 'admin' ? 6 : 5;
+                tbody.innerHTML = `<tr><td colspan="${colCount}" class="p-8 text-center text-slate-400">
+                    <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-slate-300"></i>
+                    <p class="font-medium text-xs">Belum ada jadwal pelajaran yang terdaftar pada kriteria ini.</p>
+                </td></tr>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                // Cek status pembelajaran yang dikirim guru untuk jadwal ini
+                const hasMat = state.db.materials.some(m => m.guruId === item.guruId && (m.targetKelas === item.kelas || m.targetKelas === 'all') && (m.mapel === item.mapel || !item.mapel));
+                const hasAsg = state.db.assignments.some(a => a.guruId === item.guruId && (a.targetKelas === item.kelas || a.targetKelas === 'all') && (a.mapel === item.mapel || !item.mapel));
+
+                let statusBadge = '';
+                if (hasMat && hasAsg) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-circle-check mr-1"></i> Materi & Tugas</span>`;
+                } else if (hasMat) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-green-100 text-green-800"><i class="fa-solid fa-book-open mr-1"></i> Materi Terbit</span>`;
+                } else if (hasAsg) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800"><i class="fa-solid fa-list-check mr-1"></i> Tugas Terbit</span>`;
+                } else {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">Belum Ada Kiriman</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                tr.innerHTML = `
+                    <td class="p-3.5 whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700">${item.hari}</span>
+                            <span class="text-xs font-mono font-medium text-slate-600">${item.jamMulai} - ${item.jamSelesai}</span>
+                        </div>
+                    </td>
+                    <td class="p-3.5 whitespace-nowrap">
+                        <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">Kelas ${item.kelas}</span>
+                    </td>
+                    <td class="p-3.5 font-bold text-slate-900">${item.mapel}</td>
+                    <td class="p-3.5 text-slate-700 font-medium">${item.guruNama}</td>
+                    <td class="p-3.5 text-center">${statusBadge}</td>
+                    ${u.role === 'admin' ? `
+                    <td class="p-3.5 text-right whitespace-nowrap">
+                        <button type="button" onclick="editSchedule('${item.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition inline-flex items-center justify-center">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button type="button" onclick="deleteSchedule('${item.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition inline-flex items-center justify-center ml-1">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>` : ''}
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
+        window.openModalCreateSchedule = function(editId = null) {
+            const modal = document.getElementById('modal-manage-schedule');
+            const title = document.getElementById('modal-schedule-title');
+            const form = document.getElementById('form-manage-schedule');
+            form.reset();
+            document.getElementById('manage-schedule-id').value = '';
+
+            // Populate kelas
+            const selectKelas = document.getElementById('manage-schedule-kelas');
+            selectKelas.innerHTML = '';
+            state.db.classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.namaKelas;
+                opt.innerText = `Kelas ${c.namaKelas} (${c.tingkat})`;
+                selectKelas.appendChild(opt);
+            });
+
+            // Populate mapel
+            const selectMapel = document.getElementById('manage-schedule-mapel');
+            selectMapel.innerHTML = '';
+            state.db.subjects.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.nama;
+                opt.innerText = `${s.nama} (${s.kode})`;
+                selectMapel.appendChild(opt);
+            });
+
+            // Populate guru
+            const selectGuru = document.getElementById('manage-schedule-guru');
+            selectGuru.innerHTML = '';
+            state.db.users.filter(u => u.role === 'guru').forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = `${g.namaLengkap} - [${(g.mataPelajaran || []).join(', ') || 'Guru'}]`;
+                selectGuru.appendChild(opt);
+            });
+
+            if (editId) {
+                const item = state.db.schedules.find(s => s.id === editId);
+                if (item) {
+                    title.innerText = 'Edit Jadwal Pelajaran';
+                    document.getElementById('manage-schedule-id').value = item.id;
+                    document.getElementById('manage-schedule-hari').value = item.hari;
+                    document.getElementById('manage-schedule-mulai').value = item.jamMulai || '07:30';
+                    document.getElementById('manage-schedule-selesai').value = item.jamSelesai || '09:00';
+                    selectKelas.value = item.kelas;
+                    selectMapel.value = item.mapel;
+                    selectGuru.value = item.guruId;
+                }
+            } else {
+                title.innerText = 'Tambah Jadwal Pelajaran Baru';
+                document.getElementById('manage-schedule-mulai').value = '07:30';
+                document.getElementById('manage-schedule-selesai').value = '09:00';
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.editSchedule = function(id) {
+            openModalCreateSchedule(id);
+        };
+
+        window.deleteSchedule = function(id) {
+            customConfirm('Hapus Jadwal', 'Apakah Anda yakin ingin menghapus jadwal pelajaran ini?', async () => {
+                state.db.schedules = state.db.schedules.filter(s => s.id !== id);
+                if (!IS_PREVIEW && supabase) {
+                    try {
+                        await supabase.from('schedules').delete().eq('id', id);
+                    } catch(e) {
+                        console.error("Gagal hapus jadwal dari Supabase:", e);
+                    }
+                }
+                showToast('Jadwal pelajaran berhasil dihapus.', 'info');
+                renderScheduleTable();
+            });
+        };
+
+        window.handleSaveScheduleSubmit = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-schedule');
+            btn.disabled = true;
+            btn.innerHTML = getModernSpinnerHtml('Menyimpan...');
+
+            try {
+                const id = document.getElementById('manage-schedule-id').value || ('sch_' + Date.now());
+                const hari = document.getElementById('manage-schedule-hari').value;
+                const jamMulai = document.getElementById('manage-schedule-mulai').value;
+                const jamSelesai = document.getElementById('manage-schedule-selesai').value;
+                const kelas = document.getElementById('manage-schedule-kelas').value;
+                const mapel = document.getElementById('manage-schedule-mapel').value;
+                const guruId = document.getElementById('manage-schedule-guru').value;
+                const guruObj = state.db.users.find(u => u.id === guruId);
+                const guruNama = guruObj ? guruObj.namaLengkap : 'Guru Pengampu';
+
+                const newSchedule = {
+                    id,
+                    hari,
+                    kelas,
+                    mapel,
+                    guruId,
+                    guruNama,
+                    jamMulai,
+                    jamSelesai,
+                    createdAt: new Date().toISOString()
+                };
+
+                const existingIdx = state.db.schedules.findIndex(s => s.id === id);
+                if (existingIdx !== -1) {
+                    state.db.schedules[existingIdx] = newSchedule;
+                } else {
+                    state.db.schedules.push(newSchedule);
+                }
+
+                if (!IS_PREVIEW && supabase) {
+                    try {
+                        await supabase.from('schedules').upsert([mapScheduleToDb(newSchedule)]);
+                    } catch(err) {
+                        console.warn("Gagal simpan jadwal ke Supabase (pastikan tabel sudah dibuat):", err);
+                    }
+                }
+
+                closeModal('modal-manage-schedule');
+                showToast('Jadwal pelajaran berhasil disimpan!', 'success');
+                renderScheduleTable();
+            } catch(err) {
+                showToast('Gagal menyimpan jadwal: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Simpan Jadwal</span>`;
+            }
         };
 
         window.renderKepsekSiswa = function() {
