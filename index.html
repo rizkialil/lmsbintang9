@@ -551,6 +551,95 @@
                     </div>
                 </section>
 
+                <!-- ================= PANEL WALI KELAS: MONITORING GURU KELAS ================= -->
+                <section id="panel-wali-monitoring" class="role-panel hidden space-y-6">
+                    <!-- Banner Wali Kelas Monitoring -->
+                    <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 rounded-3xl p-6 text-white shadow-lg shadow-emerald-600/15 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-semibold mb-2">
+                                <i class="fa-solid fa-chalkboard-user mr-1"></i> Pengawasan Kelas Binaan
+                            </span>
+                            <h2 class="text-xl font-bold">Monitoring Guru di Kelas: <span id="wali-mon-kelas-badge">-</span></h2>
+                            <p class="text-xs text-emerald-100 mt-1 max-w-xl">
+                                Pantau keaktifan bapak/ibu guru pengampu dalam mengirimkan materi pembelajaran dan penugasan daring untuk siswa di kelas binaan Anda.
+                            </p>
+                        </div>
+                        <div class="text-right flex items-center gap-2">
+                            <button onclick="renderWaliMonitoringTable()" class="px-4 py-2 bg-white text-emerald-800 hover:bg-slate-50 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrows-rotate text-emerald-600"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Statistik Keaktifan Guru di Kelas Ini -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-medium text-slate-500">Guru Terjadwal</span>
+                            <h4 id="stat-wali-mon-total" class="text-2xl font-bold text-slate-900 mt-1">0</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Total guru pengampu kelas binaan</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-100 bg-emerald-50/40 shadow-sm">
+                            <span class="text-xs font-medium text-emerald-700">Sudah Kirim Pembelajaran</span>
+                            <h4 id="stat-wali-mon-done" class="text-2xl font-bold text-emerald-700 mt-1">0</h4>
+                            <p class="text-[11px] text-emerald-600 mt-0.5">Materi saja / Tugas saja / Keduanya</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-rose-100 bg-rose-50/40 shadow-sm">
+                            <span class="text-xs font-medium text-rose-700">Belum Mengirim Pembelajaran</span>
+                            <h4 id="stat-wali-mon-pending" class="text-2xl font-bold text-rose-700 mt-1">0</h4>
+                            <p class="text-[11px] text-rose-600 mt-0.5">Perlu dikoordinasikan oleh wali kelas</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Search Bar -->
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="search-wali-mon" oninput="renderWaliMonitoringTable()" placeholder="Cari nama guru atau mata pelajaran..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select id="filter-wali-mon-hari" onchange="renderWaliMonitoringTable()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500">
+                                    <option value="all">Semua Hari Mengajar</option>
+                                    <option value="today">Terjadwal Hari Ini</option>
+                                    <option value="Senin">Hari Senin</option>
+                                    <option value="Selasa">Hari Selasa</option>
+                                    <option value="Rabu">Hari Rabu</option>
+                                    <option value="Kamis">Hari Kamis</option>
+                                    <option value="Jumat">Hari Jumat</option>
+                                    <option value="Sabtu">Hari Sabtu</option>
+                                </select>
+                                <select id="filter-wali-mon-status" onchange="renderWaliMonitoringTable()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500">
+                                    <option value="all">Semua Status</option>
+                                    <option value="aktif">Tuntas (Materi/Tugas/Keduanya)</option>
+                                    <option value="lengkap">Lengkap (Materi & Tugas)</option>
+                                    <option value="materi_only">Materi Saja</option>
+                                    <option value="tugas_only">Tugas Saja</option>
+                                    <option value="pasif">Belum Mengirim Pembelajaran</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tabel Monitoring Guru Kelas Binaan -->
+                        <div class="overflow-x-auto rounded-xl border border-slate-100">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+                                    <tr>
+                                        <th class="p-3.5">Mata Pelajaran</th>
+                                        <th class="p-3.5">Guru Pengampu</th>
+                                        <th class="p-3.5">Hari & Jam Mengajar</th>
+                                        <th class="p-3.5">Materi Kelas Ini</th>
+                                        <th class="p-3.5">Tugas Kelas Ini</th>
+                                        <th class="p-3.5 text-center">Status Ketercapaian</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wali-monitoring-table-body" class="divide-y divide-slate-100 text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
 
                 <!-- ================= PANEL WALI KELAS: REKAP NILAI KELAS ================= -->
                 <section id="panel-wali-rekap" class="role-panel hidden space-y-6">
@@ -1223,14 +1312,15 @@
         </div>
     </div>
 
-    <!-- ================= MODAL: UPLOAD MATERI (GURU) ================= -->
+    <!-- ================= MODAL: UPLOAD / EDIT MATERI (GURU & WALI KELAS) ================= -->
     <div id="modal-upload-materi" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-base font-bold text-slate-900">Upload Materi Pembelajaran</h3>
+                <h3 id="modal-materi-title" class="text-base font-bold text-slate-900">Upload Materi Pembelajaran</h3>
                 <button onclick="closeModal('modal-upload-materi')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="form-upload-materi" onsubmit="handleSaveMaterial(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="materi-edit-id" value="">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Judul Materi</label>
                     <input type="text" id="materi-title" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500" placeholder="contoh: Aljabar Linier & Persamaan Kuadrat">
@@ -1279,20 +1369,21 @@
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-upload-materi')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-md transition">Terbitkan Materi</button>
+                    <button type="submit" id="btn-submit-materi" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-md transition">Terbitkan Materi</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ================= MODAL: BUAT TUGAS (GURU) ================= -->
+    <!-- ================= MODAL: BUAT / EDIT TUGAS (GURU & WALI KELAS) ================= -->
     <div id="modal-create-tugas" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-base font-bold text-slate-900">Buat Tugas Baru</h3>
+                <h3 id="modal-tugas-title" class="text-base font-bold text-slate-900">Buat Tugas Baru</h3>
                 <button onclick="closeModal('modal-create-tugas')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="form-create-tugas" onsubmit="handleSaveAssignment(event)" class="mt-4 space-y-4">
+                <input type="hidden" id="tugas-edit-id" value="">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Judul Tugas</label>
                     <input type="text" id="tugas-title" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500" placeholder="Latihan Bab 3: Penerapan Hukum Newton">
@@ -1331,7 +1422,7 @@
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-create-tugas')" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition">Batal</button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition">Publikasikan Tugas</button>
+                    <button type="submit" id="btn-submit-tugas" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition">Publikasikan Tugas</button>
                 </div>
             </form>
         </div>
@@ -1339,7 +1430,7 @@
 
     <!-- ================= MODAL: PERIKSA JAWABAN TUGAS (GURU) ================= -->
     <div id="modal-evaluasi-tugas" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-3xl w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-4xl w-full shadow-2xl border border-slate-100 my-8">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
                     <h3 id="evaluasi-title" class="text-base font-bold text-slate-900">Periksa Jawaban Siswa</h3>
@@ -1349,14 +1440,40 @@
             </div>
             
             <div class="mt-4 space-y-4">
+                <!-- Filter Tabs & Actions -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+                        <button type="button" id="tab-eval-all" onclick="filterEvaluasiSubmissions('all')" class="px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm transition">
+                            Semua Siswa (<span id="count-eval-all">0</span>)
+                        </button>
+                        <button type="button" id="tab-eval-submitted" onclick="filterEvaluasiSubmissions('submitted')" class="px-3 py-1.5 rounded-lg text-emerald-700 hover:text-emerald-900 transition">
+                            <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Sudah Kirim (<span id="count-eval-submitted">0</span>)
+                        </button>
+                        <button type="button" id="tab-eval-pending" onclick="filterEvaluasiSubmissions('pending')" class="px-3 py-1.5 rounded-lg text-rose-700 hover:text-rose-900 transition">
+                            <i class="fa-solid fa-clock-rotate-left mr-1 text-rose-600"></i> Belum Kirim (<span id="count-eval-pending">0</span>)
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1 sm:w-56">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" id="search-evaluasi-siswa" oninput="renderEvaluasiTable()" placeholder="Cari nama / NISN..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <button type="button" onclick="copyPendingStudentsList()" title="Salin daftar nama siswa yang belum mengirim tugas" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 shrink-0">
+                            <i class="fa-regular fa-copy text-brand-600"></i>
+                            <span class="hidden md:inline">Salin Belum Kirim</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="overflow-x-auto rounded-xl border border-slate-100">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
                             <tr>
                                 <th class="p-3">Nama Siswa</th>
-                                <th class="p-3">Waktu Pengumpulan</th>
-                                <th class="p-3">Jawaban / Berkas</th>
-                                <th class="p-3">Nilai</th>
+                                <th class="p-3">Status & Pengumpulan</th>
+                                <th class="p-3">Jawaban / Berkas Lampiran</th>
+                                <th class="p-3">Nilai (0-100)</th>
                                 <th class="p-3">Catatan / Aksi</th>
                             </tr>
                         </thead>
@@ -2595,7 +2712,7 @@
                 if (!allowed.includes(initialPanel)) initialPanel = 'kepsek-dashboard';
             } else if (u.role === 'guru') {
                 const allowed = ['guru-dashboard', 'guru-jadwal', 'guru-materi', 'guru-tugas'];
-                if (u.isWaliKelas) allowed.push('wali-siswa', 'wali-rekap');
+                if (u.isWaliKelas) allowed.push('wali-siswa', 'wali-monitoring', 'wali-rekap');
                 if (!allowed.includes(initialPanel)) initialPanel = 'guru-dashboard';
             } else {
                 const allowed = ['siswa-dashboard', 'siswa-jadwal', 'siswa-materi', 'siswa-tugas', 'siswa-nilai'];
@@ -2638,6 +2755,7 @@
                 // Jika Guru juga merangkap Wali Kelas, tambahkan menu istimewa
                 if (u.isWaliKelas) {
                     menus.push({ id: 'wali-siswa', label: `Siswa (${u.kelasBinaan})`, icon: 'fa-user-shield', highlight: true });
+                    menus.push({ id: 'wali-monitoring', label: 'Monitoring Guru Kelas', icon: 'fa-chalkboard-user' });
                     menus.push({ id: 'wali-rekap', label: 'Rekap Nilai Kelas', icon: 'fa-chart-simple' });
                 }
             } else if (u.role === 'siswa') {
@@ -2711,6 +2829,7 @@
                 'guru-materi': { t: 'Kelola Materi Pelajaran', s: 'Terbitkan dokumen PDF, Excel, Word, Gambar, atau Catatan Teks' },
                 'guru-tugas': { t: 'Kelola Tugas & Evaluasi', s: 'Periksa kiriman tugas siswa dan beri nilai' },
                 'wali-siswa': { t: `Kelola Siswa Binaan (${state.currentUser?.kelasBinaan || ''})`, s: 'Pengaturan mandiri akun dan password siswa kelas' },
+                'wali-monitoring': { t: `Monitoring Guru Kelas: ${state.currentUser?.kelasBinaan || ''}`, s: 'Pantau keaktifan bapak/ibu guru pengampu dalam mengirim materi dan tugas' },
                 'wali-rekap': { t: 'Rekapitulasi Nilai Binaan', s: 'Pantau kemajuan belajar siswa di kelas binaan Anda' },
                 'siswa-dashboard': { t: 'Beranda Belajar', s: 'Aktivitas tugas dan materi terkini' },
                 'siswa-jadwal': { t: 'Jadwal Pelajaran Kelas', s: 'Daftar mata pelajaran kelas Anda per hari' },
@@ -2763,6 +2882,7 @@
             if (panelId === 'guru-materi') renderGuruMaterials();
             if (panelId === 'guru-tugas') renderGuruAssignments();
             if (panelId === 'wali-siswa') renderWaliSiswaTable();
+            if (panelId === 'wali-monitoring') renderWaliMonitoringTable();
             if (panelId === 'wali-rekap') renderWaliRekapTable();
             if (panelId === 'siswa-dashboard') renderSiswaDashboard();
             if (panelId === 'siswa-materi') renderSiswaMaterials();
@@ -3557,6 +3677,241 @@
             });
         }
 
+        // Monitoring Pembelajaran Guru oleh Wali Kelas
+        window.renderWaliMonitoringTable = function() {
+            const u = state.currentUser;
+            if (!u || !u.isWaliKelas) return;
+
+            const kelasBinaan = u.kelasBinaan;
+            const badgeEl = document.getElementById('wali-mon-kelas-badge');
+            if (badgeEl) badgeEl.innerText = kelasBinaan || 'Belum Ditentukan';
+
+            const query = (document.getElementById('search-wali-mon')?.value || '').toLowerCase().trim();
+            const filterHari = document.getElementById('filter-wali-mon-hari')?.value || 'all';
+            const filterStatus = document.getElementById('filter-wali-mon-status')?.value || 'all';
+            const tbody = document.getElementById('wali-monitoring-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayName = hariNames[new Date().getDay()];
+
+            const schedules = state.db.schedules || [];
+            const materials = state.db.materials || [];
+            const assignments = state.db.assignments || [];
+            const allGurus = (state.db.users || []).filter(usr => usr.role === 'guru');
+
+            // 1. Ambil jadwal khusus kelas binaan
+            const classSchedules = schedules.filter(s => s.kelas === kelasBinaan);
+
+            // Buat map guru & mapel yang mengajar di kelas binaan
+            // Key: guruId (atau guruNama) + '__' + mapel
+            const entryMap = new Map();
+
+            // Masukkan dari jadwal terdaftar
+            classSchedules.forEach(s => {
+                const key = `${s.guruId || s.guruNama}__${s.mapel}`;
+                if (!entryMap.has(key)) {
+                    const guruObj = allGurus.find(g => g.id === s.guruId || g.namaLengkap === s.guruNama);
+                    entryMap.set(key, {
+                        guruId: s.guruId,
+                        guruNama: s.guruNama || guruObj?.namaLengkap || 'Guru Pengampu',
+                        guruNip: guruObj?.nomorInduk || '',
+                        mapel: s.mapel,
+                        schedules: []
+                    });
+                }
+                const entry = entryMap.get(key);
+                if (s.hari) {
+                    entry.schedules.push({
+                        hari: s.hari,
+                        jam: (s.jamMulai && s.jamSelesai) ? `${s.jamMulai} - ${s.jamSelesai}` : (s.jamMulai || '')
+                    });
+                }
+            });
+
+            // Bila belum ada jadwal tersusun sama sekali untuk kelas ini, fallback menampilkan seluruh guru dan mapelnya
+            if (entryMap.size === 0) {
+                allGurus.forEach(g => {
+                    const mapels = (g.mataPelajaran && g.mataPelajaran.length > 0) ? g.mataPelajaran : ['Umum'];
+                    mapels.forEach(m => {
+                        const key = `${g.id}__${m}`;
+                        entryMap.set(key, {
+                            guruId: g.id,
+                            guruNama: g.namaLengkap,
+                            guruNip: g.nomorInduk || '',
+                            mapel: m,
+                            schedules: []
+                        });
+                    });
+                });
+            }
+
+            // Hitung materi dan tugas untuk setiap entri di kelas binaan
+            const rows = Array.from(entryMap.values()).map(item => {
+                const matList = materials.filter(m => 
+                    (m.guruId === item.guruId || m.guruNama === item.guruNama) &&
+                    (m.targetKelas === kelasBinaan || m.targetKelas === 'all') &&
+                    (!m.mapel || m.mapel === item.mapel || item.mapel === 'Umum')
+                );
+
+                const asgList = assignments.filter(a => 
+                    (a.guruId === item.guruId || a.guruNama === item.guruNama) &&
+                    (a.targetKelas === kelasBinaan || a.targetKelas === 'all') &&
+                    (!a.mapel || a.mapel === item.mapel || item.mapel === 'Umum')
+                );
+
+                const matCount = matList.length;
+                const asgCount = asgList.length;
+
+                let status = 'pasif';
+                if (matCount > 0 && asgCount > 0) status = 'lengkap';
+                else if (matCount > 0) status = 'materi_only';
+                else if (asgCount > 0) status = 'tugas_only';
+
+                const scheduledDays = [...new Set(item.schedules.map(s => s.hari))];
+
+                return {
+                    ...item,
+                    matList,
+                    asgList,
+                    matCount,
+                    asgCount,
+                    status,
+                    isAktif: (matCount > 0 || asgCount > 0),
+                    scheduledDays
+                };
+            });
+
+            // Update Statistik Ringkasan
+            const statTotal = rows.length;
+            const statDone = rows.filter(r => r.isAktif).length;
+            const statPending = rows.filter(r => !r.isAktif).length;
+
+            const elStatTotal = document.getElementById('stat-wali-mon-total');
+            const elStatDone = document.getElementById('stat-wali-mon-done');
+            const elStatPending = document.getElementById('stat-wali-mon-pending');
+
+            if (elStatTotal) elStatTotal.innerText = statTotal;
+            if (elStatDone) elStatDone.innerText = statDone;
+            if (elStatPending) elStatPending.innerText = statPending;
+
+            // Filter data sesuai input pengguna
+            const filteredRows = rows.filter(item => {
+                const matchQuery = item.guruNama.toLowerCase().includes(query) ||
+                    item.mapel.toLowerCase().includes(query) ||
+                    (item.guruNip && item.guruNip.toLowerCase().includes(query));
+
+                if (!matchQuery) return false;
+
+                // Filter Hari
+                if (filterHari === 'today') {
+                    if (!item.scheduledDays.includes(todayName)) return false;
+                } else if (filterHari !== 'all') {
+                    if (!item.scheduledDays.includes(filterHari)) return false;
+                }
+
+                // Filter Status
+                if (filterStatus === 'all') return true;
+                if (filterStatus === 'aktif') return item.isAktif;
+                return item.status === filterStatus;
+            });
+
+            if (filteredRows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Tidak ada data guru/mapel yang sesuai kriteria filter di kelas ${kelasBinaan}.</td></tr>`;
+                return;
+            }
+
+            filteredRows.forEach(item => {
+                let badgeStatusHtml = '';
+                if (item.status === 'lengkap') {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Lengkap (Materi & Tugas)</span>`;
+                } else if (item.status === 'materi_only') {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-book-open"></i> Aktif (Materi Saja)</span>`;
+                } else if (item.status === 'tugas_only') {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Aktif (Tugas Saja)</span>`;
+                } else {
+                    badgeStatusHtml = `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold inline-flex items-center gap-1"><i class="fa-solid fa-clock-rotate-left"></i> Belum Mengirim</span>`;
+                }
+
+                const schedBadges = item.schedules.length > 0
+                    ? item.schedules.map(sc => `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${sc.hari === todayName ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 text-slate-600'}">${sc.hari}${sc.jam ? ` (${sc.jam})` : ''}</span>`).join(' ')
+                    : '<span class="text-slate-400 italic text-[11px]">Belum dijadwalkan</span>';
+
+                const matPreview = item.matCount > 0
+                    ? `<div class="space-y-1.5">
+                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800"><i class="fa-solid fa-book-open"></i> ${item.matCount} Materi</span>
+                         <div class="flex flex-col gap-1 max-w-xs">
+                             ${item.matList.map(m => `
+                                 <div class="flex items-center justify-between gap-1 p-1.5 rounded-lg bg-emerald-50/70 border border-emerald-100 text-left">
+                                     <span class="font-semibold text-slate-800 text-[11px] truncate flex-1" title="${m.judul}">${m.judul}</span>
+                                     <div class="flex items-center gap-1 shrink-0">
+                                         <button onclick="viewMaterialModal('${m.id}')" class="px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition" title="Baca Materi">
+                                             <i class="fa-solid fa-eye"></i>
+                                         </button>
+                                         <button onclick="openEditMaterialModal('${m.id}')" class="px-2 py-0.5 rounded bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold transition" title="Edit Materi">
+                                             <i class="fa-solid fa-pen-to-square"></i>
+                                         </button>
+                                     </div>
+                                 </div>
+                             `).join('')}
+                         </div>
+                       </div>`
+                    : '<span class="text-slate-400 italic text-[11px]">Belum ada materi</span>';
+
+                const asgPreview = item.asgCount > 0
+                    ? `<div class="space-y-1.5">
+                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800"><i class="fa-solid fa-list-check"></i> ${item.asgCount} Tugas</span>
+                         <div class="flex flex-col gap-1 max-w-xs">
+                             ${item.asgList.map(a => `
+                                 <div class="flex items-center justify-between gap-1 p-1.5 rounded-lg bg-indigo-50/70 border border-indigo-100 text-left">
+                                     <div class="truncate flex-1">
+                                         <span class="font-semibold text-slate-800 text-[11px] block truncate" title="${a.judul}">${a.judul}</span>
+                                         <span class="text-[9px] text-indigo-600 block"><i class="fa-regular fa-clock mr-0.5"></i> ${a.deadline ? a.deadline.replace('T', ' ') : '-'}</span>
+                                     </div>
+                                     <div class="flex items-center gap-1 shrink-0">
+                                         <button onclick="openEvaluasiModal('${a.id}', '${kelasBinaan}')" class="px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold transition flex items-center gap-1" title="Periksa pengumpulan siswa kelas ${kelasBinaan}">
+                                             <i class="fa-solid fa-users-viewfinder"></i> Cek Siswa
+                                         </button>
+                                         <button onclick="openEditAssignmentModal('${a.id}')" class="px-1.5 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold transition" title="Edit Tugas">
+                                             <i class="fa-solid fa-pen-to-square"></i>
+                                         </button>
+                                     </div>
+                                 </div>
+                             `).join('')}
+                         </div>
+                       </div>`
+                    : '<span class="text-slate-400 italic text-[11px]">Belum ada tugas</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                tr.innerHTML = `
+                    <td class="p-3.5">
+                        <span class="font-bold text-slate-900">${item.mapel}</span>
+                    </td>
+                    <td class="p-3.5">
+                        <div class="font-semibold text-slate-900">${item.guruNama}</div>
+                        ${item.guruNip ? `<div class="text-[10px] text-slate-400 font-mono">NIP: ${item.guruNip}</div>` : ''}
+                    </td>
+                    <td class="p-3.5">
+                        <div class="flex flex-wrap gap-1">
+                            ${schedBadges}
+                        </div>
+                    </td>
+                    <td class="p-3.5">
+                        ${matPreview}
+                    </td>
+                    <td class="p-3.5">
+                        ${asgPreview}
+                    </td>
+                    <td class="p-3.5 text-center">
+                        ${badgeStatusHtml}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        };
+
         // ================= IMPORT EXCEL ENGINE (SHEETJS) =================
         let currentImportTarget = 'guru'; // 'guru', 'siswa', atau 'wali-siswa'
         let parsedExcelData = [];
@@ -3867,9 +4222,14 @@
                         <button onclick="viewMaterialModal('${m.id}')" class="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-brand-600 text-xs font-semibold transition">
                             <i class="fa-solid fa-eye mr-1"></i> Baca
                         </button>
-                        <button onclick="deleteMaterial('${m.id}')" class="w-8 h-8 rounded-xl text-rose-600 hover:bg-rose-50 flex items-center justify-center transition">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openEditMaterialModal('${m.id}')" class="w-8 h-8 rounded-xl text-amber-600 hover:bg-amber-50 flex items-center justify-center transition" title="Edit Materi">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteMaterial('${m.id}')" class="w-8 h-8 rounded-xl text-rose-600 hover:bg-rose-50 flex items-center justify-center transition" title="Hapus Materi">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
@@ -3878,6 +4238,10 @@
 
         window.openUploadMaterialModal = function() {
             document.getElementById('form-upload-materi').reset();
+            document.getElementById('materi-edit-id').value = '';
+            document.getElementById('modal-materi-title').innerText = 'Upload Materi Pembelajaran';
+            document.getElementById('btn-submit-materi').innerText = 'Terbitkan Materi';
+
             currentMaterialFileObj = null;
             currentMaterialFileName = '';
             currentMaterialMime = '';
@@ -3890,6 +4254,51 @@
 
             populateClassDropdowns();
             switchMaterialType('file');
+            openModal('modal-upload-materi');
+        };
+
+        window.openEditMaterialModal = function(materialId) {
+            const mat = state.db.materials.find(m => m.id === materialId);
+            if (!mat) return;
+
+            document.getElementById('form-upload-materi').reset();
+            document.getElementById('materi-edit-id').value = mat.id;
+            document.getElementById('modal-materi-title').innerText = 'Edit Materi Pembelajaran';
+            document.getElementById('btn-submit-materi').innerText = 'Simpan Perubahan Materi';
+
+            currentMaterialFileObj = null;
+            currentMaterialFileName = mat.fileName || '';
+            currentMaterialMime = mat.fileMime || '';
+
+            // Populate Mapel & Kelas
+            const u = state.currentUser;
+            const mapelSelect = document.getElementById('materi-mapel');
+            const mapels = (u.mataPelajaran || ['Umum']).slice();
+            if (mat.mapel && !mapels.includes(mat.mapel)) mapels.push(mat.mapel);
+            mapelSelect.innerHTML = mapels.map(m => `<option value="${m}">${m}</option>`).join('');
+            mapelSelect.value = mat.mapel || mapels[0];
+
+            populateClassDropdowns();
+            const targetKelasSelect = document.getElementById('materi-target-kelas');
+            if (targetKelasSelect) targetKelasSelect.value = mat.targetKelas || 'all';
+
+            document.getElementById('materi-title').value = mat.judul || '';
+
+            const infoBox = document.getElementById('materi-file-info');
+            if (mat.tipeKonten === 'file') {
+                switchMaterialType('file');
+                if (mat.fileName || mat.fileData) {
+                    infoBox.classList.remove('hidden');
+                    infoBox.innerHTML = `<i class="fa-solid fa-paperclip mr-1 text-brand-600"></i> Berkas saat ini: <strong>${mat.fileName || 'Berkas Lampiran'}</strong><div class="text-[10px] text-slate-500 mt-0.5">Pilih berkas baru di atas jika ingin mengganti, atau biarkan kosong jika tetap memakai berkas ini.</div>`;
+                } else {
+                    infoBox.classList.add('hidden');
+                }
+            } else {
+                switchMaterialType('text');
+                infoBox.classList.add('hidden');
+            }
+            document.getElementById('materi-text-content').value = mat.isiTeks || '';
+
             openModal('modal-upload-materi');
         };
 
@@ -3935,64 +4344,117 @@
 
         window.handleSaveMaterial = async function(e) {
             e.preventDefault();
+            const editId = document.getElementById('materi-edit-id').value;
             const judul = document.getElementById('materi-title').value.trim();
             const mapel = document.getElementById('materi-mapel').value;
             const targetKelas = document.getElementById('materi-target-kelas').value;
             const isiTeks = document.getElementById('materi-text-content').value.trim();
-            const tipeKonten = currentMaterialFileObj ? 'file' : 'text';
 
-            if (tipeKonten === 'text' && !isiTeks) {
-                showToast('Harap masukkan catatan teks materi atau pilih lampiran berkas.', 'warning');
-                return;
-            }
-
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('btn-submit-materi');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = getModernSpinnerHtml('Mengunggah...');
+                submitBtn.innerHTML = getModernSpinnerHtml(editId ? 'Menyimpan...' : 'Mengunggah...');
             }
 
             try {
-                let fileUrl = '';
-                if (tipeKonten === 'file' && currentMaterialFileObj) {
-                    const uploadResult = await uploadFileToStorage(currentMaterialFileObj, 'materials');
-                    fileUrl = uploadResult.url;
-                }
+                if (editId) {
+                    // MODE EDIT
+                    const mat = state.db.materials.find(m => m.id === editId);
+                    if (!mat) throw new Error('Data materi tidak ditemukan.');
 
-                const newMat = {
-                    id: 'mat_' + Date.now(),
-                    judul,
-                    mapel,
-                    targetKelas,
-                    tipeKonten,
-                    isiTeks,
-                    fileName: currentMaterialFileName,
-                    fileData: fileUrl,
-                    fileMime: currentMaterialMime,
-                    guruId: state.currentUser.id,
-                    guruNama: state.currentUser.namaLengkap,
-                    createdAt: new Date().toISOString()
-                };
+                    const isFileTabActive = !document.getElementById('materi-field-file').classList.contains('hidden');
+                    const tipeKonten = isFileTabActive ? 'file' : 'text';
 
-                state.db.materials.push(newMat);
-                if (!IS_PREVIEW && supabase) {
-                    try {
-                        await supabase.from('materials').insert([mapMaterialToDb(newMat)]);
-                    } catch(err){
-                        console.error("Gagal simpan materi ke Supabase:", err);
+                    if (tipeKonten === 'text' && !isiTeks) {
+                        showToast('Harap masukkan catatan teks materi.', 'warning');
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Simpan Perubahan Materi'; }
+                        return;
                     }
-                }
 
-                closeModal('modal-upload-materi');
-                showToast('Materi berhasil diterbitkan untuk siswa!', 'success');
-                renderGuruMaterials();
+                    let fileUrl = mat.fileData;
+                    let fileName = mat.fileName;
+                    let fileMime = mat.fileMime;
+
+                    if (tipeKonten === 'file' && currentMaterialFileObj) {
+                        const uploadResult = await uploadFileToStorage(currentMaterialFileObj, 'materials');
+                        fileUrl = uploadResult.url;
+                        fileName = currentMaterialFileName;
+                        fileMime = currentMaterialMime;
+                    }
+
+                    mat.judul = judul;
+                    mat.mapel = mapel;
+                    mat.targetKelas = targetKelas;
+                    mat.tipeKonten = tipeKonten;
+                    mat.isiTeks = isiTeks;
+                    mat.fileData = fileUrl;
+                    mat.fileName = fileName;
+                    mat.fileMime = fileMime;
+
+                    if (!IS_PREVIEW && supabase) {
+                        try {
+                            await supabase.from('materials').update(mapMaterialToDb(mat)).eq('id', editId);
+                        } catch(err){
+                            console.error("Gagal update materi ke Supabase:", err);
+                        }
+                    }
+
+                    closeModal('modal-upload-materi');
+                    showToast('Materi pembelajaran berhasil diperbarui!', 'success');
+                    renderGuruMaterials();
+                    if (state.activePanel === 'wali-monitoring') renderWaliMonitoringTable();
+                } else {
+                    // MODE CREATE
+                    const tipeKonten = currentMaterialFileObj ? 'file' : 'text';
+
+                    if (tipeKonten === 'text' && !isiTeks) {
+                        showToast('Harap masukkan catatan teks materi atau pilih lampiran berkas.', 'warning');
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = 'Terbitkan Materi'; }
+                        return;
+                    }
+
+                    let fileUrl = '';
+                    if (tipeKonten === 'file' && currentMaterialFileObj) {
+                        const uploadResult = await uploadFileToStorage(currentMaterialFileObj, 'materials');
+                        fileUrl = uploadResult.url;
+                    }
+
+                    const newMat = {
+                        id: 'mat_' + Date.now(),
+                        judul,
+                        mapel,
+                        targetKelas,
+                        tipeKonten,
+                        isiTeks,
+                        fileName: currentMaterialFileName,
+                        fileData: fileUrl,
+                        fileMime: currentMaterialMime,
+                        guruId: state.currentUser.id,
+                        guruNama: state.currentUser.namaLengkap,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    state.db.materials.push(newMat);
+                    if (!IS_PREVIEW && supabase) {
+                        try {
+                            await supabase.from('materials').insert([mapMaterialToDb(newMat)]);
+                        } catch(err){
+                            console.error("Gagal simpan materi ke Supabase:", err);
+                        }
+                    }
+
+                    closeModal('modal-upload-materi');
+                    showToast('Materi berhasil diterbitkan untuk siswa!', 'success');
+                    renderGuruMaterials();
+                    if (state.activePanel === 'wali-monitoring') renderWaliMonitoringTable();
+                }
             } catch (err) {
-                console.error("Gagal menerbitkan materi:", err);
-                showToast('Gagal menerbitkan materi: ' + err.message, 'error');
+                console.error("Gagal menyimpan materi:", err);
+                showToast('Gagal menyimpan materi: ' + err.message, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = `Terbitkan Materi`;
+                    submitBtn.innerHTML = editId ? 'Simpan Perubahan Materi' : 'Terbitkan Materi';
                 }
             }
         };
@@ -4008,16 +4470,22 @@
             });
         };
 
-        // Buat Tugas Baru (Guru) dengan Lampiran File
+        // Buat & Edit Tugas (Guru & Wali Kelas) dengan Lampiran File
         let currentAssignmentFileObj = null;
         let currentAssignmentFileName = '';
         let currentAssignmentMime = '';
+        let currentAssignmentFileDeleted = false;
 
         window.openCreateAssignmentModal = function() {
             document.getElementById('form-create-tugas').reset();
+            document.getElementById('tugas-edit-id').value = '';
+            document.getElementById('modal-tugas-title').innerText = 'Buat Tugas Baru';
+            document.getElementById('btn-submit-tugas').innerText = 'Publikasikan Tugas';
+
             currentAssignmentFileObj = null;
             currentAssignmentFileName = '';
             currentAssignmentMime = '';
+            currentAssignmentFileDeleted = false;
             const infoBox = document.getElementById('tugas-file-info');
             if (infoBox) infoBox.classList.add('hidden');
 
@@ -4025,6 +4493,49 @@
             const mapelSelect = document.getElementById('tugas-mapel');
             mapelSelect.innerHTML = (u.mataPelajaran || ['Umum']).map(m => `<option value="${m}">${m}</option>`).join('');
             populateClassDropdowns();
+            openModal('modal-create-tugas');
+        };
+
+        window.openEditAssignmentModal = function(assignmentId) {
+            const task = state.db.assignments.find(a => a.id === assignmentId);
+            if (!task) return;
+
+            document.getElementById('form-create-tugas').reset();
+            document.getElementById('tugas-edit-id').value = task.id;
+            document.getElementById('modal-tugas-title').innerText = 'Edit Tugas Pembelajaran';
+            document.getElementById('btn-submit-tugas').innerText = 'Simpan Perubahan Tugas';
+
+            currentAssignmentFileObj = null;
+            currentAssignmentFileName = task.fileName || '';
+            currentAssignmentMime = task.fileMime || '';
+            currentAssignmentFileDeleted = false;
+
+            const u = state.currentUser;
+            const mapelSelect = document.getElementById('tugas-mapel');
+            const mapels = (u.mataPelajaran || ['Umum']).slice();
+            if (task.mapel && !mapels.includes(task.mapel)) mapels.push(task.mapel);
+            mapelSelect.innerHTML = mapels.map(m => `<option value="${m}">${m}</option>`).join('');
+            mapelSelect.value = task.mapel || mapels[0];
+
+            populateClassDropdowns();
+            const targetKelasSelect = document.getElementById('tugas-target-kelas');
+            if (targetKelasSelect) targetKelasSelect.value = task.targetKelas || 'all';
+
+            document.getElementById('tugas-title').value = task.judul || '';
+            document.getElementById('tugas-deadline').value = task.deadline || '';
+            document.getElementById('tugas-deskripsi').value = task.deskripsi || '';
+
+            const infoBox = document.getElementById('tugas-file-info');
+            const infoText = document.getElementById('tugas-file-info-text');
+            if (task.fileData) {
+                if (infoBox && infoText) {
+                    infoBox.classList.remove('hidden');
+                    infoText.innerHTML = `<i class="fa-solid fa-paperclip mr-1 text-indigo-600"></i> Berkas saat ini: <strong>${task.fileName || 'Berkas Soal'}</strong><div class="text-[10px] text-slate-500 mt-0.5">Pilih berkas baru di atas jika ingin mengganti, atau biarkan kosong jika tetap memakai berkas ini.</div>`;
+                }
+            } else {
+                if (infoBox) infoBox.classList.add('hidden');
+            }
+
             openModal('modal-create-tugas');
         };
 
@@ -4044,6 +4555,7 @@
             currentAssignmentFileObj = file;
             currentAssignmentFileName = file.name;
             currentAssignmentMime = file.type;
+            currentAssignmentFileDeleted = false;
             const fileSizeStr = (file.size / 1024).toFixed(1) + ' KB';
 
             const infoBox = document.getElementById('tugas-file-info');
@@ -4058,6 +4570,7 @@
             currentAssignmentFileObj = null;
             currentAssignmentFileName = '';
             currentAssignmentMime = '';
+            currentAssignmentFileDeleted = true;
             const input = document.getElementById('tugas-file-input');
             if (input) input.value = '';
             const infoBox = document.getElementById('tugas-file-info');
@@ -4066,56 +4579,104 @@
 
         window.handleSaveAssignment = async function(e) {
             e.preventDefault();
+            const editId = document.getElementById('tugas-edit-id').value;
             const judul = document.getElementById('tugas-title').value.trim();
             const mapel = document.getElementById('tugas-mapel').value;
             const targetKelas = document.getElementById('tugas-target-kelas').value;
             const deadline = document.getElementById('tugas-deadline').value;
             const deskripsi = document.getElementById('tugas-deskripsi').value.trim();
 
-            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const submitBtn = document.getElementById('btn-submit-tugas');
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = getModernSpinnerHtml('Mempublikasikan...');
+                submitBtn.innerHTML = getModernSpinnerHtml(editId ? 'Menyimpan...' : 'Mempublikasikan...');
             }
 
             try {
-                let fileUrl = '';
-                if (currentAssignmentFileObj) {
-                    const uploadResult = await uploadFileToStorage(currentAssignmentFileObj, 'assignments');
-                    fileUrl = uploadResult.url;
-                }
+                if (editId) {
+                    // MODE EDIT TUGAS
+                    const task = state.db.assignments.find(a => a.id === editId);
+                    if (!task) throw new Error('Data tugas tidak ditemukan.');
 
-                const newAssign = {
-                    id: 'asg_' + Date.now(),
-                    judul,
-                    mapel,
-                    targetKelas,
-                    deadline,
-                    deskripsi,
-                    fileName: currentAssignmentFileName,
-                    fileData: fileUrl,
-                    fileMime: currentAssignmentMime,
-                    guruId: state.currentUser.id,
-                    createdAt: new Date().toISOString()
-                };
+                    let fileUrl = task.fileData;
+                    let fileName = task.fileName;
+                    let fileMime = task.fileMime;
 
-                state.db.assignments.push(newAssign);
-                if (!IS_PREVIEW && supabase) {
-                    try { await supabase.from('assignments').insert([mapAssignmentToDb(newAssign)]); } catch(err){
-                        console.error("Gagal simpan tugas ke Supabase:", err);
+                    if (currentAssignmentFileObj) {
+                        const uploadResult = await uploadFileToStorage(currentAssignmentFileObj, 'assignments');
+                        fileUrl = uploadResult.url;
+                        fileName = currentAssignmentFileName;
+                        fileMime = currentAssignmentMime;
+                    } else if (currentAssignmentFileDeleted) {
+                        fileUrl = '';
+                        fileName = '';
+                        fileMime = '';
                     }
-                }
 
-                closeModal('modal-create-tugas');
-                showToast('Tugas baru beserta lampiran berhasil dipublikasikan!', 'success');
-                renderGuruAssignments();
+                    task.judul = judul;
+                    task.mapel = mapel;
+                    task.targetKelas = targetKelas;
+                    task.deadline = deadline;
+                    task.deskripsi = deskripsi;
+                    task.fileData = fileUrl;
+                    task.fileName = fileName;
+                    task.fileMime = fileMime;
+
+                    if (!IS_PREVIEW && supabase) {
+                        try {
+                            await supabase.from('assignments').update(mapAssignmentToDb(task)).eq('id', editId);
+                        } catch(err){
+                            console.error("Gagal update tugas ke Supabase:", err);
+                        }
+                    }
+
+                    closeModal('modal-create-tugas');
+                    showToast('Tugas pembelajaran berhasil diperbarui!', 'success');
+                    renderGuruAssignments();
+                    if (state.activePanel === 'wali-monitoring') renderWaliMonitoringTable();
+                } else {
+                    // MODE CREATE TUGAS BARU
+                    let fileUrl = '';
+                    if (currentAssignmentFileObj) {
+                        const uploadResult = await uploadFileToStorage(currentAssignmentFileObj, 'assignments');
+                        fileUrl = uploadResult.url;
+                    }
+
+                    const newAssign = {
+                        id: 'asg_' + Date.now(),
+                        judul,
+                        mapel,
+                        targetKelas,
+                        deadline,
+                        deskripsi,
+                        fileName: currentAssignmentFileName,
+                        fileData: fileUrl,
+                        fileMime: currentAssignmentMime,
+                        guruId: state.currentUser.id,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    state.db.assignments.push(newAssign);
+                    if (!IS_PREVIEW && supabase) {
+                        try {
+                            await supabase.from('assignments').insert([mapAssignmentToDb(newAssign)]);
+                        } catch(err){
+                            console.error("Gagal simpan tugas ke Supabase:", err);
+                        }
+                    }
+
+                    closeModal('modal-create-tugas');
+                    showToast('Tugas baru beserta lampiran berhasil dipublikasikan!', 'success');
+                    renderGuruAssignments();
+                    if (state.activePanel === 'wali-monitoring') renderWaliMonitoringTable();
+                }
             } catch (err) {
-                console.error("Gagal mempublikasikan tugas:", err);
-                showToast('Gagal mempublikasikan tugas: ' + err.message, 'error');
+                console.error("Gagal memproses tugas:", err);
+                showToast('Gagal memproses tugas: ' + err.message, 'error');
             } finally {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = `Publikasikan Tugas`;
+                    submitBtn.innerHTML = editId ? 'Simpan Perubahan Tugas' : 'Publikasikan Tugas';
                 }
             }
         };
@@ -4158,7 +4719,10 @@
                         <button onclick="openEvaluasiModal('${a.id}')" class="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-clipboard-check"></i> Periksa Jawaban
                         </button>
-                        <button onclick="deleteAssignment('${a.id}')" class="w-8 h-8 rounded-xl text-rose-600 hover:bg-rose-50 flex items-center justify-center transition">
+                        <button onclick="openEditAssignmentModal('${a.id}')" class="w-8 h-8 rounded-xl text-amber-600 hover:bg-amber-50 flex items-center justify-center transition" title="Edit Tugas">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteAssignment('${a.id}')" class="w-8 h-8 rounded-xl text-rose-600 hover:bg-rose-50 flex items-center justify-center transition" title="Hapus Tugas">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
@@ -4181,56 +4745,275 @@
                 }
                 showToast('Tugas telah dihapus.', 'info');
                 renderGuruAssignments();
+                if (state.activePanel === 'wali-monitoring') renderWaliMonitoringTable();
             });
         };
 
-        // Evaluasi dan Pemberian Nilai
+        // Evaluasi dan Pemberian Nilai (Dilengkapi Roster Siswa & Filter Kepatuhan)
         let currentEvaluatingAssignmentId = null;
-        window.openEvaluasiModal = function(assignmentId) {
+        let currentEvaluatingKelas = null;
+        let currentEvaluasiFilter = 'all'; // 'all', 'submitted', 'pending'
+
+        window.openEvaluasiModal = function(assignmentId, specificKelas = null) {
             currentEvaluatingAssignmentId = assignmentId;
+            currentEvaluatingKelas = specificKelas;
+            currentEvaluasiFilter = 'all';
+            
+            const searchInput = document.getElementById('search-evaluasi-siswa');
+            if (searchInput) searchInput.value = '';
+
             const task = state.db.assignments.find(a => a.id === assignmentId);
             if (!task) return;
 
+            const displayKelas = specificKelas || task.targetKelas;
             document.getElementById('evaluasi-title').innerText = `Periksa: ${task.judul}`;
-            document.getElementById('evaluasi-subtitle').innerText = `Kelas: ${task.targetKelas} • ${task.mapel}`;
+            document.getElementById('evaluasi-subtitle').innerText = `Target: Kelas ${displayKelas} • ${task.mapel} • Tenggat: ${task.deadline ? task.deadline.replace('T', ' ') : '-'}`;
+
+            filterEvaluasiSubmissions('all');
+            openModal('modal-evaluasi-tugas');
+        };
+
+        window.filterEvaluasiSubmissions = function(filterType) {
+            currentEvaluasiFilter = filterType;
+            
+            const tabAll = document.getElementById('tab-eval-all');
+            const tabSub = document.getElementById('tab-eval-submitted');
+            const tabPen = document.getElementById('tab-eval-pending');
+
+            [tabAll, tabSub, tabPen].forEach(btn => {
+                if (!btn) return;
+                btn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+            });
+
+            if (filterType === 'all' && tabAll) {
+                tabAll.className = 'px-3 py-1.5 rounded-lg bg-white text-slate-800 font-bold shadow-sm transition';
+            } else if (filterType === 'submitted' && tabSub) {
+                tabSub.className = 'px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold shadow-sm transition';
+            } else if (filterType === 'pending' && tabPen) {
+                tabPen.className = 'px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold shadow-sm transition';
+            }
+
+            renderEvaluasiTable();
+        };
+
+        window.renderEvaluasiTable = function() {
+            if (!currentEvaluatingAssignmentId) return;
+            const task = state.db.assignments.find(a => a.id === currentEvaluatingAssignmentId);
+            if (!task) return;
 
             const tbody = document.getElementById('evaluasi-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            const subs = state.db.submissions.filter(s => s.assignmentId === assignmentId);
-            if (subs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Belum ada siswa yang mengumpulkan tugas ini.</td></tr>`;
-            } else {
-                subs.forEach(s => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-50 transition';
+            const query = (document.getElementById('search-evaluasi-siswa')?.value || '').toLowerCase().trim();
+
+            // 1. Ambil seluruh siswa target kelas
+            const allUsers = state.db.users || [];
+            let targetStudents = allUsers.filter(u => u.role === 'siswa');
+            const filterKelas = currentEvaluatingKelas || (task.targetKelas !== 'all' ? task.targetKelas : null);
+            if (filterKelas) {
+                targetStudents = targetStudents.filter(u => u.kelas === filterKelas);
+            }
+            targetStudents.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+
+            // 2. Petakan status pengumpulan masing-masing siswa
+            const submissions = state.db.submissions || [];
+            const mappedList = targetStudents.map(std => {
+                const sub = submissions.find(s => s.assignmentId === task.id && (s.studentId === std.id || s.studentNama === std.namaLengkap));
+                return {
+                    student: std,
+                    submission: sub || null,
+                    hasSubmitted: !!sub
+                };
+            });
+
+            // Antisipasi jika ada pengumpulan dari siswa yang tidak terdaftar di filter rombel
+            submissions.filter(s => s.assignmentId === task.id).forEach(sub => {
+                const subKelasMatch = !filterKelas || sub.kelas === filterKelas;
+                if (subKelasMatch && !mappedList.some(m => m.student.id === sub.studentId || m.student.namaLengkap === sub.studentNama)) {
+                    mappedList.push({
+                        student: {
+                            id: sub.studentId || 'unknown',
+                            namaLengkap: sub.studentNama || 'Siswa',
+                            nomorInduk: '-',
+                            kelas: sub.kelas || task.targetKelas
+                        },
+                        submission: sub,
+                        hasSubmitted: true
+                    });
+                }
+            });
+
+            // 3. Update counter badge di tombol filter
+            const countAll = mappedList.length;
+            const countSubmitted = mappedList.filter(m => m.hasSubmitted).length;
+            const countPending = mappedList.filter(m => !m.hasSubmitted).length;
+
+            const elCountAll = document.getElementById('count-eval-all');
+            const elCountSub = document.getElementById('count-eval-submitted');
+            const elCountPen = document.getElementById('count-eval-pending');
+            if (elCountAll) elCountAll.innerText = countAll;
+            if (elCountSub) elCountSub.innerText = countSubmitted;
+            if (elCountPen) elCountPen.innerText = countPending;
+
+            // 4. Saring berdasarkan filter tab dan teks pencarian
+            const filteredList = mappedList.filter(item => {
+                const std = item.student;
+                const matchQuery = (std.namaLengkap && std.namaLengkap.toLowerCase().includes(query)) ||
+                    (std.nomorInduk && std.nomorInduk.toLowerCase().includes(query)) ||
+                    (std.kelas && std.kelas.toLowerCase().includes(query));
+
+                if (!matchQuery) return false;
+
+                if (currentEvaluasiFilter === 'submitted') return item.hasSubmitted;
+                if (currentEvaluasiFilter === 'pending') return !item.hasSubmitted;
+                return true;
+            });
+
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400">Tidak ada siswa yang sesuai dengan filter atau pencarian.</td></tr>`;
+                return;
+            }
+
+            // 5. Render setiap baris siswa
+            filteredList.forEach(item => {
+                const std = item.student;
+                const sub = item.submission;
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+                if (item.hasSubmitted) {
+                    // Siswa SUDAH mengumpulkan
+                    const submitTimeStr = sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('id-ID') : '-';
                     tr.innerHTML = `
-                        <td class="p-3 font-bold text-slate-900">${s.studentNama}</td>
-                        <td class="p-3 text-slate-500 text-[11px]">${new Date(s.submittedAt).toLocaleString('id-ID')}</td>
                         <td class="p-3">
-                            <div class="space-y-1">
-                                ${s.jawabanTeks ? `<p class="text-xs text-slate-700 bg-slate-50 p-2 rounded-lg max-w-xs truncate">${s.jawabanTeks}</p>` : ''}
-                                ${s.fileData ? `<a href="${s.fileData}" target="_blank" rel="noopener noreferrer" download="${s.fileName || 'berkas_tugas'}" class="inline-flex items-center gap-1 text-[11px] text-brand-600 font-bold hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${s.fileName || 'Lihat/Unduh Berkas'}</a>` : ''}
+                            <div class="font-bold text-slate-900">${std.namaLengkap}</div>
+                            <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500 font-mono">
+                                <span>NISN: ${std.nomorInduk || '-'}</span>
+                                <span>•</span>
+                                <span class="text-brand-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span>
                             </div>
                         </td>
                         <td class="p-3">
-                            <input type="number" min="0" max="100" id="grade-input-${s.id}" value="${s.nilai !== undefined ? s.nilai : ''}" placeholder="0-100" class="w-16 px-2 py-1 rounded-lg border border-slate-200 text-xs text-center font-bold">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 mb-1">
+                                <i class="fa-solid fa-circle-check"></i> Sudah Mengirim
+                            </span>
+                            <div class="text-[11px] text-slate-500">${submitTimeStr}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="space-y-1.5 max-w-xs">
+                                ${sub.jawabanTeks ? `<div class="text-xs text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-200/60 break-words whitespace-pre-wrap max-h-24 overflow-y-auto">${sub.jawabanTeks}</div>` : ''}
+                                ${sub.fileData ? `<a href="${sub.fileData}" target="_blank" rel="noopener noreferrer" download="${sub.fileName || 'berkas_tugas'}" class="inline-flex items-center gap-1.5 text-xs text-brand-600 font-bold hover:underline bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-100"><i class="fa-solid fa-download"></i> ${sub.fileName || 'Unduh Berkas Siswa'}</a>` : ''}
+                                ${!sub.jawabanTeks && !sub.fileData ? '<span class="text-slate-400 italic text-[11px]">Tidak ada lampiran</span>' : ''}
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <input type="number" min="0" max="100" id="grade-input-${sub.id}" value="${sub.nilai !== undefined && sub.nilai !== null ? sub.nilai : ''}" placeholder="0-100" class="w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-xs text-center font-bold focus:ring-2 focus:ring-emerald-500">
                         </td>
                         <td class="p-3">
                             <div class="flex items-center gap-2">
-                                <input type="text" id="feedback-input-${s.id}" value="${s.feedback || ''}" placeholder="Catatan evaluasi guru..." class="px-2 py-1 rounded-lg border border-slate-200 text-xs w-44">
-                                <button onclick="saveStudentGrade('${s.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">
+                                <input type="text" id="feedback-input-${sub.id}" value="${sub.feedback || ''}" placeholder="Catatan evaluasi guru..." class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs w-44 focus:ring-2 focus:ring-emerald-500">
+                                <button onclick="saveStudentGrade('${sub.id}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-sm shrink-0">
                                     Simpan
                                 </button>
                             </div>
                         </td>
                     `;
-                    tbody.appendChild(tr);
-                });
+                } else {
+                    // Siswa BELUM mengumpulkan
+                    tr.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-bold text-slate-800">${std.namaLengkap}</div>
+                            <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-mono">
+                                <span>NISN: ${std.nomorInduk || '-'}</span>
+                                <span>•</span>
+                                <span class="text-slate-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 mb-1">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Belum Mengirim
+                            </span>
+                            <div class="text-[11px] text-rose-500 italic">Belum ada aktivitas</div>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-slate-400 italic text-[11px]">Belum ada berkas / respon</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="text-slate-300 font-bold text-center block">-</span>
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-100 inline-block">
+                                Menunggu Kiriman Siswa
+                            </span>
+                        </td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        };
+
+        window.copyPendingStudentsList = function() {
+            if (!currentEvaluatingAssignmentId) return;
+            const task = state.db.assignments.find(a => a.id === currentEvaluatingAssignmentId);
+            if (!task) return;
+
+            const allUsers = state.db.users || [];
+            let targetStudents = allUsers.filter(u => u.role === 'siswa');
+            const filterKelas = currentEvaluatingKelas || (task.targetKelas !== 'all' ? task.targetKelas : null);
+            if (filterKelas) {
+                targetStudents = targetStudents.filter(u => u.kelas === filterKelas);
+            }
+            targetStudents.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+
+            const submissions = state.db.submissions || [];
+            const pendingStudents = targetStudents.filter(std => {
+                return !submissions.some(s => s.assignmentId === task.id && (s.studentId === std.id || s.studentNama === std.namaLengkap));
+            });
+
+            if (pendingStudents.length === 0) {
+                showToast('Luar biasa! Seluruh siswa sudah mengumpulkan tugas ini.', 'success');
+                return;
             }
 
-            openModal('modal-evaluasi-tugas');
+            let textToCopy = `📋 *DAFTAR SISWA BELUM MENGUMPULKAN TUGAS*\n`;
+            textToCopy += `Judul Tugas: ${task.judul}\n`;
+            textToCopy += `Mata Pelajaran: ${task.mapel}\n`;
+            textToCopy += `Kelas: ${filterKelas || task.targetKelas}\n`;
+            textToCopy += `Tenggat Waktu: ${task.deadline ? task.deadline.replace('T', ' ') : '-'}\n`;
+            textToCopy += `Jumlah Belum Kirim: ${pendingStudents.length} siswa\n\n`;
+            textToCopy += `Daftar Nama:\n`;
+            pendingStudents.forEach((std, idx) => {
+                textToCopy += `${idx + 1}. ${std.namaLengkap} (NISN: ${std.nomorInduk || '-'})\n`;
+            });
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showToast(`Daftar ${pendingStudents.length} siswa belum kirim berhasil disalin ke clipboard!`, 'success');
+                }).catch(() => {
+                    fallbackCopyText(textToCopy);
+                });
+            } else {
+                fallbackCopyText(textToCopy);
+            }
         };
+
+        function fallbackCopyText(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('Daftar siswa belum kirim berhasil disalin ke clipboard!', 'success');
+            } catch(e) {
+                showToast('Gagal menyalin teks secara otomatis.', 'error');
+            }
+            document.body.removeChild(ta);
+        }
 
         window.saveStudentGrade = async function(submissionId) {
             const scoreVal = document.getElementById(`grade-input-${submissionId}`).value;
@@ -4260,6 +5043,7 @@
                 }
 
                 showToast(`Nilai untuk ${sub.studentNama} berhasil disimpan!`, 'success');
+                renderEvaluasiTable();
             }
         };
 
