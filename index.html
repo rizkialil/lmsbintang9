@@ -75,6 +75,13 @@
         .bottom-nav-shadow {
             box-shadow: 0 -4px 20px -2px rgba(0, 0, 0, 0.08);
         }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -84,7 +91,7 @@
 
     <!-- ================= MODAL KONFIRMASI CUSTOM ================= -->
     <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 transform transition-all">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-100 transform transition-all my-auto max-h-[90vh] overflow-y-auto">
             <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-4">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
@@ -202,12 +209,15 @@
 
             <!-- TOPBAR (DESKTOP & MOBILE) -->
             <header class="glass-header sticky top-0 z-20 h-16 border-b border-slate-200/80 px-4 lg:px-8 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="lg:hidden w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center text-sm">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <button type="button" onclick="toggleMobileDrawer(true)" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm transition" title="Buka Menu Lengkap">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="hidden sm:flex w-8 h-8 rounded-lg bg-brand-600 text-white items-center justify-center text-sm">
                         <i class="fa-solid fa-graduation-cap"></i>
                     </div>
                     <div>
-                        <h1 id="topbar-title" class="text-base lg:text-lg font-bold text-slate-900">Dashboard</h1>
+                        <h1 id="topbar-title" class="text-sm sm:text-base lg:text-lg font-bold text-slate-900 truncate max-w-[150px] xs:max-w-[220px] sm:max-w-xs md:max-w-md">Dashboard</h1>
                         <p id="topbar-subtitle" class="text-xs text-slate-500 hidden sm:block">Ringkasan aktivitas pembelajaran daring</p>
                     </div>
                 </div>
@@ -1123,15 +1133,64 @@
             </main>
         </div>
 
+        <!-- ================= MOBILE OFF-CANVAS DRAWER ================= -->
+        <div id="mobile-drawer-overlay" onclick="toggleMobileDrawer(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden transition-opacity opacity-0 duration-200 lg:hidden"></div>
+        <aside id="mobile-drawer" class="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white z-50 shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden">
+            <!-- Drawer Header -->
+            <div class="h-16 px-5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-base shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900 leading-tight">E-Sinau</h2>
+                        <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">SMK Bintang Sembilan</span>
+                    </div>
+                </div>
+                <button type="button" onclick="toggleMobileDrawer(false)" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Drawer Profile Info -->
+            <div class="p-4 mx-3 my-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                <div id="drawer-user-avatar" class="w-10 h-10 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm shrink-0">
+                    U
+                </div>
+                <div class="overflow-hidden min-w-0">
+                    <h4 id="drawer-user-name" class="text-xs font-bold text-slate-800 truncate">Nama Pengguna</h4>
+                    <span id="drawer-user-role" class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">Role</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links in Drawer -->
+            <div class="px-3 py-1 flex-1 overflow-y-auto space-y-1">
+                <p class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Semua Menu Navigasi</p>
+                <nav id="drawer-nav" class="space-y-1"></nav>
+            </div>
+
+            <!-- Drawer Bottom Actions -->
+            <div class="p-4 border-t border-slate-100 space-y-1 bg-slate-50/50">
+                <button type="button" onclick="toggleMobileDrawer(false); openModalChangePassword();" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-700 hover:bg-white text-xs font-semibold transition border border-transparent hover:border-slate-200">
+                    <i class="fa-solid fa-key text-amber-500"></i>
+                    <span>Ganti Password</span>
+                </button>
+                <button type="button" onclick="toggleMobileDrawer(false); logout();" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-semibold transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Keluar Aplikasi</span>
+                </button>
+            </div>
+        </aside>
+
         <!-- ================= FLOATING BOTTOM NAVIGATION (MOBILE) ================= -->
-        <nav id="mobile-nav" class="lg:hidden fixed bottom-3 left-4 right-4 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 bottom-nav-shadow px-2 py-2 flex items-center justify-around">
+        <nav id="mobile-nav" class="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 bottom-nav-shadow px-2 py-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth">
             <!-- Rendered dynamically according to active role -->
         </nav>
     </div>
 
     <!-- ================= MODAL: TAMBAH / EDIT PENGGUNA (ADMIN) ================= -->
     <div id="modal-user" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 id="modal-user-title" class="text-base font-bold text-slate-900">Tambah Pengguna Baru</h3>
                 <button onclick="closeModal('modal-user')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1216,7 +1275,7 @@
 
     <!-- ================= MODAL: WALI KELAS KELOLA SISWA ================= -->
     <div id="modal-wali-siswa" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 id="modal-wali-siswa-title" class="text-base font-bold text-slate-900">Tambah Siswa Binaan</h3>
                 <button onclick="closeModal('modal-wali-siswa')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1259,7 +1318,7 @@
 
     <!-- ================= MODAL: IMPORT EXCEL (SHEETJS ENGINE) ================= -->
     <div id="modal-import-excel" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
                     <h3 id="modal-import-title" class="text-base font-bold text-slate-900">Import Data via Excel</h3>
@@ -1314,7 +1373,7 @@
 
     <!-- ================= MODAL: UPLOAD / EDIT MATERI (GURU & WALI KELAS) ================= -->
     <div id="modal-upload-materi" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 id="modal-materi-title" class="text-base font-bold text-slate-900">Upload Materi Pembelajaran</h3>
                 <button onclick="closeModal('modal-upload-materi')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1377,7 +1436,7 @@
 
     <!-- ================= MODAL: BUAT / EDIT TUGAS (GURU & WALI KELAS) ================= -->
     <div id="modal-create-tugas" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 id="modal-tugas-title" class="text-base font-bold text-slate-900">Buat Tugas Baru</h3>
                 <button onclick="closeModal('modal-create-tugas')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -1429,18 +1488,21 @@
     </div>
 
     <!-- ================= MODAL: PERIKSA JAWABAN TUGAS (GURU) ================= -->
-    <div id="modal-evaluasi-tugas" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-4xl w-full shadow-2xl border border-slate-100 my-8">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div id="modal-evaluasi-tugas" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden my-auto">
+            <!-- Pinned Header -->
+            <div class="p-5 lg:px-7 py-4 border-b border-slate-100 shrink-0 bg-slate-50/70 flex items-center justify-between">
                 <div>
                     <h3 id="evaluasi-title" class="text-base font-bold text-slate-900">Periksa Jawaban Siswa</h3>
                     <p id="evaluasi-subtitle" class="text-xs text-slate-500">Beri skor nilai dan evaluasi untuk setiap pengumpulan</p>
                 </div>
-                <button onclick="closeModal('modal-evaluasi-tugas')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button type="button" onclick="closeModal('modal-evaluasi-tugas')" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
             
-            <div class="mt-4 space-y-4">
-                <!-- Filter Tabs & Actions -->
+            <!-- Pinned Filter Tabs & Actions -->
+            <div class="p-4 sm:p-5 lg:px-7 pb-3 border-b border-slate-100 shrink-0 bg-white">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
                         <button type="button" id="tab-eval-all" onclick="filterEvaluasiSubmissions('all')" class="px-3 py-1.5 rounded-lg bg-white text-slate-800 shadow-sm transition">
@@ -1465,10 +1527,13 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div class="overflow-x-auto rounded-xl border border-slate-100">
+            <!-- Scrollable Table Container with Sticky Thead -->
+            <div class="flex-1 overflow-y-auto overflow-x-auto min-h-0 p-4 sm:p-5 lg:px-7">
+                <div class="rounded-xl border border-slate-100 overflow-hidden">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                        <thead class="sticky top-0 bg-slate-100/95 backdrop-blur-xs text-slate-600 font-semibold border-b border-slate-200 shadow-xs z-10">
                             <tr>
                                 <th class="p-3">Nama Siswa</th>
                                 <th class="p-3">Status & Pengumpulan</th>
@@ -1477,16 +1542,24 @@
                                 <th class="p-3">Catatan / Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="evaluasi-table-body" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="evaluasi-table-body" class="divide-y divide-slate-100 bg-white"></tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 sm:px-7 border-t border-slate-100 shrink-0 bg-slate-50/70 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400">Daftar evaluasi dan status kepatuhan siswa</span>
+                <button type="button" onclick="closeModal('modal-evaluasi-tugas')" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs transition">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
 
     <!-- ================= MODAL: SUBMIT JAWABAN TUGAS (SISWA) ================= -->
     <div id="modal-submit-tugas" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
                     <h3 id="submit-tugas-title" class="text-base font-bold text-slate-900">Kumpulkan Tugas</h3>
@@ -1539,7 +1612,7 @@
 
     <!-- ================= MODAL: LIHAT / BACA MATERI ================= -->
     <div id="modal-view-materi" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div>
                     <span id="read-materi-mapel" class="text-[11px] font-bold text-brand-600 uppercase tracking-wider">Mapel</span>
@@ -1574,7 +1647,7 @@
 
     <!-- ================= MODAL: TAMBAH KELAS ================= -->
     <div id="modal-add-class" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <h3 class="text-base font-bold text-slate-900 mb-4">Tambah Kelas / Rombel</h3>
             <form onsubmit="handleSaveClass(event)" class="space-y-3">
                 <div>
@@ -1595,7 +1668,7 @@
 
     <!-- ================= MODAL: TAMBAH MAPEL ================= -->
     <div id="modal-add-subject" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <h3 class="text-base font-bold text-slate-900 mb-4">Tambah Mata Pelajaran</h3>
             <form onsubmit="handleSaveSubject(event)" class="space-y-3">
                 <div>
@@ -1616,7 +1689,7 @@
 
     <!-- ================= MODAL: TAMBAH / EDIT JADWAL PELAJARAN (ADMIN) ================= -->
     <div id="modal-manage-schedule" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 id="modal-schedule-title" class="text-base font-bold text-slate-900">Tambah Jadwal Pelajaran</h3>
                 <button type="button" onclick="closeModal('modal-manage-schedule')" class="text-slate-400 hover:text-slate-600">
@@ -1684,7 +1757,7 @@
 
     <!-- ================= MODAL: GANTI PASSWORD AKUN ================= -->
     <div id="modal-change-password" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-sm w-full shadow-2xl border border-slate-100 my-8">
+        <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-sm w-full shadow-2xl border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm font-bold">
@@ -2756,25 +2829,44 @@
             document.getElementById('user-name-display').innerText = u.namaLengkap;
             document.getElementById('user-avatar').innerText = (u.namaLengkap || 'U').charAt(0).toUpperCase();
 
-            // Atur Badge Role di Sidebar
+            // Atur Info Profil Mobile Drawer
+            const drawerUserName = document.getElementById('drawer-user-name');
+            const drawerUserAvatar = document.getElementById('drawer-user-avatar');
+            if (drawerUserName) drawerUserName.innerText = u.namaLengkap;
+            if (drawerUserAvatar) drawerUserAvatar.innerText = (u.namaLengkap || 'U').charAt(0).toUpperCase();
+
+            // Atur Badge Role di Sidebar Desktop & Mobile Drawer
             const roleBadge = document.getElementById('user-role-badge');
+            const drawerRoleBadge = document.getElementById('drawer-user-role');
+            let roleBadgeClass = '';
+            let roleBadgeText = '';
+
             if (u.role === 'admin') {
-                roleBadge.className = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700';
-                roleBadge.innerText = 'Administrator';
+                roleBadgeClass = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700';
+                roleBadgeText = 'Administrator';
             } else if (u.role === 'kepsek') {
-                roleBadge.className = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700';
-                roleBadge.innerText = 'Kepala Sekolah';
+                roleBadgeClass = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700';
+                roleBadgeText = 'Kepala Sekolah';
             } else if (u.role === 'guru') {
                 if (u.isWaliKelas) {
-                    roleBadge.className = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800';
-                    roleBadge.innerText = `Guru & Wali ${u.kelasBinaan}`;
+                    roleBadgeClass = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800';
+                    roleBadgeText = `Guru & Wali ${u.kelasBinaan}`;
                 } else {
-                    roleBadge.className = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700';
-                    roleBadge.innerText = 'Guru Pengampu';
+                    roleBadgeClass = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700';
+                    roleBadgeText = 'Guru Pengampu';
                 }
             } else {
-                roleBadge.className = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800';
-                roleBadge.innerText = `Siswa (${u.kelas || '-'})`;
+                roleBadgeClass = 'inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800';
+                roleBadgeText = `Siswa (${u.kelas || '-'})`;
+            }
+
+            if (roleBadge) {
+                roleBadge.className = roleBadgeClass;
+                roleBadge.innerText = roleBadgeText;
+            }
+            if (drawerRoleBadge) {
+                drawerRoleBadge.className = roleBadgeClass;
+                drawerRoleBadge.innerText = roleBadgeText;
             }
 
             buildNavigation();
@@ -2798,79 +2890,139 @@
             navigateTo(initialPanel);
         }
 
+        // ================= MOBILE DRAWER CONTROLLER =================
+        window.toggleMobileDrawer = function(open) {
+            const drawer = document.getElementById('mobile-drawer');
+            const overlay = document.getElementById('mobile-drawer-overlay');
+            if (!drawer || !overlay) return;
+
+            const shouldOpen = open !== undefined ? open : drawer.classList.contains('-translate-x-full');
+
+            if (shouldOpen) {
+                overlay.classList.remove('hidden');
+                void overlay.offsetWidth;
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+                drawer.classList.remove('-translate-x-full');
+            } else {
+                overlay.classList.remove('opacity-100');
+                overlay.classList.add('opacity-0');
+                drawer.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 200);
+            }
+        };
+
         // ================= MEMBANGUN MENU NAVIGASI (DESKTOP & MOBILE) =================
         function buildNavigation() {
             const u = state.currentUser;
             const desktopNav = document.getElementById('desktop-nav');
             const mobileNav = document.getElementById('mobile-nav');
-            desktopNav.innerHTML = '';
-            mobileNav.innerHTML = '';
+            const drawerNav = document.getElementById('drawer-nav');
+            if (desktopNav) desktopNav.innerHTML = '';
+            if (mobileNav) mobileNav.innerHTML = '';
+            if (drawerNav) drawerNav.innerHTML = '';
 
             let menus = [];
 
             if (u.role === 'admin') {
                 menus = [
-                    { id: 'admin-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-                    { id: 'admin-users', label: 'Kelola Pengguna', icon: 'fa-users-gear' },
-                    { id: 'admin-classes', label: 'Kelas & Mapel', icon: 'fa-shapes' },
-                    { id: 'admin-schedules', label: 'Jadwal Pelajaran', icon: 'fa-calendar-days' }
+                    { id: 'admin-dashboard', label: 'Dashboard', shortLabel: 'Beranda', icon: 'fa-chart-pie' },
+                    { id: 'admin-users', label: 'Kelola Pengguna', shortLabel: 'Pengguna', icon: 'fa-users-gear' },
+                    { id: 'admin-classes', label: 'Kelas & Mapel', shortLabel: 'Kelas', icon: 'fa-shapes' },
+                    { id: 'admin-schedules', label: 'Jadwal Pelajaran', shortLabel: 'Jadwal', icon: 'fa-calendar-days' }
                 ];
             } else if (u.role === 'kepsek') {
                 menus = [
-                    { id: 'kepsek-dashboard', label: 'Dashboard', icon: 'fa-chart-pie' },
-                    { id: 'kepsek-guru', label: 'Monitoring Guru', icon: 'fa-chalkboard-user' },
-                    { id: 'kepsek-siswa', label: 'Monitoring Siswa', icon: 'fa-user-check' },
-                    { id: 'kepsek-jadwal', label: 'Jadwal Pelajaran', icon: 'fa-calendar-days' }
+                    { id: 'kepsek-dashboard', label: 'Dashboard', shortLabel: 'Beranda', icon: 'fa-chart-pie' },
+                    { id: 'kepsek-guru', label: 'Monitoring Guru', shortLabel: 'Guru', icon: 'fa-chalkboard-user' },
+                    { id: 'kepsek-siswa', label: 'Monitoring Siswa', shortLabel: 'Siswa', icon: 'fa-user-check' },
+                    { id: 'kepsek-jadwal', label: 'Jadwal Pelajaran', shortLabel: 'Jadwal', icon: 'fa-calendar-days' }
                 ];
             } else if (u.role === 'guru') {
                 menus = [
-                    { id: 'guru-dashboard', label: 'Dashboard', icon: 'fa-gauge' },
-                    { id: 'guru-jadwal', label: 'Jadwal Mengajar', icon: 'fa-calendar-days' },
-                    { id: 'guru-materi', label: 'Kelola Materi', icon: 'fa-file-lines' },
-                    { id: 'guru-tugas', label: 'Kelola Tugas', icon: 'fa-list-check' }
+                    { id: 'guru-dashboard', label: 'Dashboard', shortLabel: 'Beranda', icon: 'fa-gauge' },
+                    { id: 'guru-jadwal', label: 'Jadwal Mengajar', shortLabel: 'Jadwal', icon: 'fa-calendar-days' },
+                    { id: 'guru-materi', label: 'Kelola Materi', shortLabel: 'Materi', icon: 'fa-file-lines' },
+                    { id: 'guru-tugas', label: 'Kelola Tugas', shortLabel: 'Tugas', icon: 'fa-list-check' }
                 ];
                 // Jika Guru juga merangkap Wali Kelas, tambahkan menu istimewa
                 if (u.isWaliKelas) {
-                    menus.push({ id: 'wali-siswa', label: `Siswa (${u.kelasBinaan})`, icon: 'fa-user-shield', highlight: true });
-                    menus.push({ id: 'wali-monitoring', label: 'Monitoring Guru Kelas', icon: 'fa-chalkboard-user' });
-                    menus.push({ id: 'wali-rekap', label: 'Rekap Nilai Kelas', icon: 'fa-chart-simple' });
+                    menus.push({ id: 'wali-siswa', label: `Siswa (${u.kelasBinaan})`, shortLabel: 'Siswa', icon: 'fa-user-shield', highlight: true });
+                    menus.push({ id: 'wali-monitoring', label: 'Monitoring Guru Kelas', shortLabel: 'Monitor', icon: 'fa-chalkboard-user' });
+                    menus.push({ id: 'wali-rekap', label: 'Rekap Nilai Kelas', shortLabel: 'Rekap', icon: 'fa-chart-simple' });
                 }
             } else if (u.role === 'siswa') {
                 menus = [
-                    { id: 'siswa-dashboard', label: 'Beranda', icon: 'fa-house' },
-                    { id: 'siswa-jadwal', label: 'Jadwal Kelas', icon: 'fa-calendar-days' },
-                    { id: 'siswa-materi', label: 'Materi Belajar', icon: 'fa-book-open' },
-                    { id: 'siswa-tugas', label: 'Tugas Saya', icon: 'fa-pen-to-square' },
-                    { id: 'siswa-nilai', label: 'Buku Nilai', icon: 'fa-award' }
+                    { id: 'siswa-dashboard', label: 'Beranda', shortLabel: 'Beranda', icon: 'fa-house' },
+                    { id: 'siswa-jadwal', label: 'Jadwal Kelas', shortLabel: 'Jadwal', icon: 'fa-calendar-days' },
+                    { id: 'siswa-materi', label: 'Materi Belajar', shortLabel: 'Materi', icon: 'fa-book-open' },
+                    { id: 'siswa-tugas', label: 'Tugas Saya', shortLabel: 'Tugas', icon: 'fa-pen-to-square' },
+                    { id: 'siswa-nilai', label: 'Buku Nilai', shortLabel: 'Nilai', icon: 'fa-award' }
                 ];
             }
 
-            // Render Desktop Nav
-            menus.forEach(m => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.id = `nav-desk-${m.id}`;
-                btn.onclick = () => navigateTo(m.id);
-                btn.className = `w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${m.highlight ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-600 hover:bg-slate-100'}`;
-                btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i> <span>${m.label}</span>`;
-                desktopNav.appendChild(btn);
-            });
+            // Render Desktop Nav (Sidebar)
+            if (desktopNav) {
+                menus.forEach(m => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = `nav-desk-${m.id}`;
+                    btn.onclick = () => navigateTo(m.id);
+                    btn.className = `w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${m.highlight ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-600 hover:bg-slate-100'}`;
+                    btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i> <span>${m.label}</span>`;
+                    desktopNav.appendChild(btn);
+                });
+            }
 
-            // Render Mobile Nav (Bottom Bar)
-            menus.forEach(m => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.id = `nav-mob-${m.id}`;
-                btn.onclick = () => navigateTo(m.id);
-                btn.className = 'flex flex-col items-center justify-center p-2 rounded-xl text-slate-500 hover:text-brand-600 transition flex-1';
-                btn.innerHTML = `<i class="fa-solid ${m.icon} text-base mb-1"></i><span class="text-[10px] font-medium leading-none truncate max-w-[64px]">${m.label}</span>`;
-                mobileNav.appendChild(btn);
-            });
+            // Render Drawer Nav (Mobile Slide-out)
+            if (drawerNav) {
+                menus.forEach(m => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = `nav-draw-${m.id}`;
+                    btn.onclick = () => {
+                        toggleMobileDrawer(false);
+                        navigateTo(m.id);
+                    };
+                    btn.className = `w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${m.highlight ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-600 hover:bg-slate-100'}`;
+                    btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i> <span>${m.label}</span>`;
+                    drawerNav.appendChild(btn);
+                });
+            }
+
+            // Render Mobile Nav (Scrollable Horizontal Bottom Dock)
+            if (mobileNav) {
+                menus.forEach(m => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = `nav-mob-${m.id}`;
+                    btn.onclick = () => navigateTo(m.id);
+                    btn.className = 'flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 hover:text-brand-600 transition shrink-0 min-w-[58px] text-center';
+                    btn.innerHTML = `<i class="fa-solid ${m.icon} text-sm mb-1"></i><span class="text-[10px] font-medium leading-none whitespace-nowrap">${m.shortLabel || m.label}</span>`;
+                    mobileNav.appendChild(btn);
+                });
+
+                // Tombol "Semua" di bar mobile untuk membuka slide drawer menu lengkap
+                const moreBtn = document.createElement('button');
+                moreBtn.type = 'button';
+                moreBtn.id = 'nav-mob-drawer-toggle';
+                moreBtn.onclick = () => toggleMobileDrawer(true);
+                moreBtn.className = 'flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 hover:text-brand-600 transition shrink-0 min-w-[52px] text-center border-l border-slate-200/80';
+                moreBtn.innerHTML = `<i class="fa-solid fa-bars text-sm mb-1"></i><span class="text-[10px] font-medium leading-none whitespace-nowrap">Semua</span>`;
+                mobileNav.appendChild(moreBtn);
+            }
         }
 
         // ================= NAVIGASI ANTAR PANEL =================
         window.navigateTo = function(panelId) {
             state.activePanel = panelId;
+
+            // Tutup mobile drawer jika sedang terbuka
+            if (window.toggleMobileDrawer) {
+                window.toggleMobileDrawer(false);
+            }
 
             try {
                 localStorage.setItem('lms_active_panel', panelId);
@@ -2920,7 +3072,7 @@
                 subTitleEl.innerText = titleMap[panelId].s;
             }
 
-            // Update Active State di Navigasi
+            // Update Active State di Navigasi Desktop
             document.querySelectorAll('#desktop-nav button').forEach(b => {
                 b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700');
                 if (!b.classList.contains('text-emerald-700')) {
@@ -2933,14 +3085,31 @@
                 activeDesk.classList.remove('text-slate-600', 'text-emerald-700', 'bg-emerald-50');
             }
 
+            // Update Active State di Mobile Drawer
+            document.querySelectorAll('#drawer-nav button').forEach(b => {
+                b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700');
+                if (!b.classList.contains('text-emerald-700')) {
+                    b.classList.add('text-slate-600');
+                }
+            });
+            const activeDraw = document.getElementById(`nav-draw-${panelId}`);
+            if (activeDraw) {
+                activeDraw.classList.add('bg-brand-600', 'text-white');
+                activeDraw.classList.remove('text-slate-600', 'text-emerald-700', 'bg-emerald-50');
+            }
+
+            // Update Active State di Mobile Bottom Bar (Auto Scroll Center)
             document.querySelectorAll('#mobile-nav button').forEach(b => {
-                b.classList.remove('text-brand-600', 'font-bold');
+                b.classList.remove('text-brand-600', 'font-bold', 'bg-brand-50/80');
                 b.classList.add('text-slate-500');
             });
             const activeMob = document.getElementById(`nav-mob-${panelId}`);
             if (activeMob) {
-                activeMob.classList.add('text-brand-600', 'font-bold');
+                activeMob.classList.add('text-brand-600', 'font-bold', 'bg-brand-50/80');
                 activeMob.classList.remove('text-slate-500');
+                try {
+                    activeMob.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } catch(e) {}
             }
 
             // Panggil fungsi render sesuai panel
