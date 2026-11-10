@@ -209,16 +209,16 @@
 
             <!-- TOPBAR (DESKTOP & MOBILE) -->
             <header class="glass-header sticky top-0 z-20 h-16 border-b border-slate-200/80 px-4 lg:px-8 flex items-center justify-between">
-                <div class="flex items-center gap-2.5 sm:gap-3">
-                    <button type="button" onclick="toggleMobileDrawer(true)" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm transition" title="Buka Menu Lengkap">
+                <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                    <button type="button" onclick="toggleMobileDrawer(true)" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm transition shrink-0" title="Buka Menu Lengkap">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <div class="hidden sm:flex w-8 h-8 rounded-lg bg-brand-600 text-white items-center justify-center text-sm">
+                    <div class="hidden sm:flex w-8 h-8 rounded-lg bg-brand-600 text-white items-center justify-center text-sm shrink-0">
                         <i class="fa-solid fa-graduation-cap"></i>
                     </div>
-                    <div>
-                        <h1 id="topbar-title" class="text-sm sm:text-base lg:text-lg font-bold text-slate-900 truncate max-w-[150px] xs:max-w-[220px] sm:max-w-xs md:max-w-md">Dashboard</h1>
-                        <p id="topbar-subtitle" class="text-xs text-slate-500 hidden sm:block">Ringkasan aktivitas pembelajaran daring</p>
+                    <div class="min-w-0 flex-1">
+                        <h1 id="topbar-title" class="text-xs xs:text-sm sm:text-base lg:text-lg font-bold text-slate-900 truncate">Dashboard</h1>
+                        <p id="topbar-subtitle" class="text-xs text-slate-500 hidden sm:block truncate">Ringkasan aktivitas pembelajaran daring</p>
                     </div>
                 </div>
 
@@ -535,7 +535,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="relative flex-1">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                                <input type="text" id="search-wali-siswa-input" oninput="renderWaliSiswaTable()" placeholder="Cari nama, NISN, atau username siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <input type="text" id="search-wali-siswa-input" oninput="renderWaliSiswaTable()" placeholder="Cari nama, No. Absen, atau username siswa..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
                             <span id="wali-siswa-count-badge" class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-2 rounded-xl text-center">
                                 Total: 0 Siswa
@@ -546,7 +546,7 @@
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
                                     <tr>
-                                        <th class="p-3.5">NISN / No Induk</th>
+                                        <th class="p-3.5">No. Absen</th>
                                         <th class="p-3.5">Nama Lengkap</th>
                                         <th class="p-3.5">Username Login</th>
                                         <th class="p-3.5">Password</th>
@@ -1032,7 +1032,7 @@
                         <!-- Search Siswa -->
                         <div class="relative">
                             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-                            <input type="text" id="search-kepsek-siswa" oninput="renderKepsekSiswa()" placeholder="Cari nama siswa, NISN, atau kelas..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <input type="text" id="search-kepsek-siswa" oninput="renderKepsekSiswa()" placeholder="Cari nama siswa, No. Absen, atau kelas..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
                         </div>
                     </div>
 
@@ -1042,7 +1042,7 @@
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
                                     <tr>
-                                        <th class="p-3.5">NISN</th>
+                                        <th class="p-3.5">No. Absen</th>
                                         <th class="p-3.5">Nama Siswa</th>
                                         <th class="p-3.5">Kelas</th>
                                         <th class="p-3.5 text-center">Tugas Ditugaskan</th>
@@ -1224,7 +1224,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nomor Induk (NIP / NISN)</label>
+                    <label id="label-user-nip" class="block text-xs font-semibold text-slate-600 mb-1">NIP / Nomor Induk</label>
                     <input type="text" id="manage-user-nip" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500" placeholder="contoh: 198203152010011002">
                 </div>
 
@@ -1284,8 +1284,8 @@
                 <input type="hidden" id="wali-student-id">
                 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">NISN / No Induk Siswa</label>
-                    <input type="text" id="wali-student-nip" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500" placeholder="10293847">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">No. Absen Siswa</label>
+                    <input type="text" id="wali-student-nip" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-emerald-500" placeholder="contoh: 1, 2, 3...">
                 </div>
 
                 <div>
@@ -1519,7 +1519,7 @@
                     <div class="flex items-center gap-2">
                         <div class="relative flex-1 sm:w-56">
                             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                            <input type="text" id="search-evaluasi-siswa" oninput="renderEvaluasiTable()" placeholder="Cari nama / NISN..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" id="search-evaluasi-siswa" oninput="renderEvaluasiTable()" placeholder="Cari nama / No. Absen..." class="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500">
                         </div>
                         <button type="button" onclick="copyPendingStudentsList()" title="Salin daftar nama siswa yang belum mengirim tugas" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5 shrink-0">
                             <i class="fa-regular fa-copy text-brand-600"></i>
@@ -3151,31 +3151,32 @@
             const subTitleEl = document.getElementById('topbar-subtitle');
 
             const titleMap = {
-                'admin-dashboard': { t: 'Dashboard Administrator', s: 'Ringkasan statistik sekolah & akses cepat' },
-                'admin-users': { t: 'Manajemen Pengguna', s: 'Atur username, password, dan penugasan peran' },
-                'admin-classes': { t: 'Kelola Kelas & Mapel', s: 'Pengaturan rombongan belajar dan kurikulum mapel' },
-                'admin-schedules': { t: 'Jadwal Pelajaran Sekolah', s: 'Atur alokasi mata pelajaran, kelas, dan guru pengampu per hari' },
-                'kepsek-dashboard': { t: 'Dashboard Eksekutif Kepala Sekolah', s: 'Monitoring menyeluruh kegiatan pembelajaran daring guru dan siswa' },
-                'kepsek-guru': { t: 'Monitoring Keaktifan Guru', s: 'Pantau guru yang belum menerbitkan materi atau penugasan' },
-                'kepsek-siswa': { t: 'Monitoring Kepatuhan Siswa', s: 'Pantau siapa saja siswa yang belum mengirimkan tugas' },
-                'kepsek-jadwal': { t: 'Jadwal Pelajaran Sekolah', s: 'Pantau agenda mengajar seluruh guru dan kelas per hari' },
-                'guru-dashboard': { t: 'Dashboard Guru', s: 'Ringkasan kegiatan mengajar daring' },
-                'guru-jadwal': { t: 'Jadwal Mengajar Saya', s: 'Agenda jadwal mengajar mingguan dan jam pelajaran' },
-                'guru-materi': { t: 'Kelola Materi Pelajaran', s: 'Terbitkan dokumen PDF, Excel, Word, Gambar, atau Catatan Teks' },
-                'guru-tugas': { t: 'Kelola Tugas & Evaluasi', s: 'Periksa kiriman tugas siswa dan beri nilai' },
-                'wali-siswa': { t: `Kelola Siswa Binaan (${state.currentUser?.kelasBinaan || ''})`, s: 'Pengaturan mandiri akun dan password siswa kelas' },
-                'wali-monitoring': { t: `Monitoring Guru Kelas: ${state.currentUser?.kelasBinaan || ''}`, s: 'Pantau keaktifan bapak/ibu guru pengampu dalam mengirim materi dan tugas' },
-                'wali-rekap': { t: 'Rekapitulasi Nilai Binaan', s: 'Pantau kemajuan belajar siswa di kelas binaan Anda' },
-                'siswa-dashboard': { t: 'Beranda Belajar', s: 'Aktivitas tugas dan materi terkini' },
-                'siswa-jadwal': { t: 'Jadwal Pelajaran Kelas', s: 'Daftar mata pelajaran kelas Anda per hari' },
-                'siswa-materi': { t: 'Materi Pembelajaran', s: 'Akses materi teks dan berkas modul' },
-                'siswa-tugas': { t: 'Daftar Tugas Daring', s: 'Kirimkan tugas Anda sebelum batas waktu' },
-                'siswa-nilai': { t: 'Buku Nilai & Feedback', s: 'Hasil evaluasi dan skor dari bapak/ibu guru' }
+                'admin-dashboard': { t: 'Dashboard Administrator', m: 'Dashboard Admin', s: 'Ringkasan statistik sekolah & akses cepat' },
+                'admin-users': { t: 'Manajemen Pengguna', m: 'Kelola Pengguna', s: 'Atur username, password, dan penugasan peran' },
+                'admin-classes': { t: 'Kelola Kelas & Mapel', m: 'Kelas & Mapel', s: 'Pengaturan rombongan belajar dan kurikulum mapel' },
+                'admin-schedules': { t: 'Jadwal Pelajaran Sekolah', m: 'Jadwal Sekolah', s: 'Atur alokasi mata pelajaran, kelas, dan guru pengampu per hari' },
+                'kepsek-dashboard': { t: 'Dashboard Eksekutif Kepala Sekolah', m: 'Dashboard Kepsek', s: 'Monitoring menyeluruh kegiatan pembelajaran daring guru dan siswa' },
+                'kepsek-guru': { t: 'Monitoring Keaktifan Guru', m: 'Monitor Guru', s: 'Pantau guru yang belum menerbitkan materi atau penugasan' },
+                'kepsek-siswa': { t: 'Monitoring Kepatuhan Siswa', m: 'Monitor Siswa', s: 'Pantau siapa saja siswa yang belum mengirimkan tugas' },
+                'kepsek-jadwal': { t: 'Jadwal Pelajaran Sekolah', m: 'Jadwal Sekolah', s: 'Pantau agenda mengajar seluruh guru dan kelas per hari' },
+                'guru-dashboard': { t: 'Dashboard Guru', m: 'Dashboard Guru', s: 'Ringkasan kegiatan mengajar daring' },
+                'guru-jadwal': { t: 'Jadwal Mengajar Saya', m: 'Jadwal Mengajar', s: 'Agenda jadwal mengajar mingguan dan jam pelajaran' },
+                'guru-materi': { t: 'Kelola Materi Pelajaran', m: 'Kelola Materi', s: 'Terbitkan dokumen PDF, Excel, Word, Gambar, atau Catatan Teks' },
+                'guru-tugas': { t: 'Kelola Tugas & Evaluasi', m: 'Kelola Tugas', s: 'Periksa kiriman tugas siswa dan beri nilai' },
+                'wali-siswa': { t: `Kelola Siswa Binaan (${state.currentUser?.kelasBinaan || ''})`, m: 'Siswa Binaan', s: 'Pengaturan mandiri akun dan password siswa kelas' },
+                'wali-monitoring': { t: `Monitoring Guru Kelas: ${state.currentUser?.kelasBinaan || ''}`, m: 'Monitor Guru', s: 'Pantau keaktifan bapak/ibu guru pengampu dalam mengirim materi dan tugas' },
+                'wali-rekap': { t: 'Rekapitulasi Nilai Binaan', m: 'Rekap Nilai', s: 'Pantau kemajuan belajar siswa di kelas binaan Anda' },
+                'siswa-dashboard': { t: 'Beranda Belajar', m: 'Beranda Belajar', s: 'Aktivitas tugas dan materi terkini' },
+                'siswa-jadwal': { t: 'Jadwal Pelajaran Kelas', m: 'Jadwal Kelas', s: 'Daftar mata pelajaran kelas Anda per hari' },
+                'siswa-materi': { t: 'Materi Pembelajaran', m: 'Materi Belajar', s: 'Akses materi teks dan berkas modul' },
+                'siswa-tugas': { t: 'Daftar Tugas Daring', m: 'Tugas Daring', s: 'Kirimkan tugas Anda sebelum batas waktu' },
+                'siswa-nilai': { t: 'Buku Nilai & Feedback', m: 'Buku Nilai', s: 'Hasil evaluasi dan skor dari bapak/ibu guru' }
             };
 
             if (titleMap[panelId]) {
-                titleEl.innerText = titleMap[panelId].t;
-                subTitleEl.innerText = titleMap[panelId].s;
+                const item = titleMap[panelId];
+                titleEl.innerHTML = `<span class="sm:hidden">${item.m || item.t}</span><span class="hidden sm:inline">${item.t}</span>`;
+                subTitleEl.innerText = item.s;
             }
 
             // Update Active State di Navigasi Desktop
@@ -3408,7 +3409,7 @@
                 });
             } else {
                 thead.innerHTML = `
-                    <th class="p-3.5">NISN</th>
+                    <th class="p-3.5">No. Absen</th>
                     <th class="p-3.5">Nama Siswa</th>
                     <th class="p-3.5">Kelas</th>
                     <th class="p-3.5">Username Login</th>
@@ -3427,6 +3428,16 @@
                     tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Tidak ada data siswa yang cocok.</td></tr>`;
                     return;
                 }
+
+                // Urutkan berdasarkan rombel kelas, lalu nomor absen secara numerik
+                filtered.sort((a, b) => {
+                    const kComp = (a.kelas || '').localeCompare(b.kelas || '');
+                    if (kComp !== 0) return kComp;
+                    const nA = parseInt(a.nomorInduk, 10);
+                    const nB = parseInt(b.nomorInduk, 10);
+                    if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                    return (a.nomorInduk || '').localeCompare(b.nomorInduk || '', undefined, { numeric: true });
+                });
 
                 filtered.forEach(u => {
                     const tr = document.createElement('tr');
@@ -3506,16 +3517,24 @@
             const role = document.getElementById('manage-user-role').value;
             const fieldGuru = document.getElementById('field-guru-only');
             const fieldSiswa = document.getElementById('field-siswa-only');
+            const lblNip = document.getElementById('label-user-nip');
+            const inputNip = document.getElementById('manage-user-nip');
 
             if (role === 'guru') {
                 fieldGuru.classList.remove('hidden');
                 fieldSiswa.classList.add('hidden');
+                if (lblNip) lblNip.innerText = 'NIP / Nomor Induk (Opsional)';
+                if (inputNip) inputNip.placeholder = 'contoh: 198203152010011002';
             } else if (role === 'siswa') {
                 fieldGuru.classList.add('hidden');
                 fieldSiswa.classList.remove('hidden');
+                if (lblNip) lblNip.innerText = 'No. Absen Siswa';
+                if (inputNip) inputNip.placeholder = 'contoh: 1, 2, 3...';
             } else {
                 fieldGuru.classList.add('hidden');
                 fieldSiswa.classList.add('hidden');
+                if (lblNip) lblNip.innerText = 'NIP / Nomor Induk';
+                if (inputNip) inputNip.placeholder = 'contoh: 198203152010011002';
             }
         };
 
@@ -4042,6 +4061,14 @@
                 return;
             }
 
+            // Urutkan siswa binaan berdasarkan nomor absen secara numerik
+            filtered.sort((a, b) => {
+                const nA = parseInt(a.nomorInduk, 10);
+                const nB = parseInt(b.nomorInduk, 10);
+                if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                return (a.nomorInduk || '').localeCompare(b.nomorInduk || '', undefined, { numeric: true });
+            });
+
             filtered.forEach(usr => {
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-50 transition';
@@ -4522,8 +4549,10 @@
         };
 
         function parseAndDisplayExcelData(rows) {
-            const headers = rows[0].map(h => (h || '').toString().trim());
-            const dataRows = rows.slice(1).filter(r => r.length > 0 && r.some(cell => cell !== undefined && cell !== ''));
+            if (!rows || rows.length === 0) {
+                showToast('Berkas Excel kosong atau tidak terbaca.', 'error');
+                return;
+            }
 
             parsedExcelData = [];
             const thead = document.getElementById('import-preview-head');
@@ -4531,17 +4560,107 @@
             thead.innerHTML = '';
             tbody.innerHTML = '';
 
+            // Cari baris header secara cerdas (mendukung jika ada petunjuk pengisian di baris atas)
+            let headerRowIdx = -1;
+            const colMap = {};
+
+            for (let i = 0; i < Math.min(rows.length, 15); i++) {
+                const row = rows[i];
+                if (!Array.isArray(row)) continue;
+                const rowStr = row.map(c => (c || '').toString().toLowerCase()).join(' ');
+
+                if (currentImportTarget === 'guru') {
+                    if (rowStr.includes('nama') && (rowStr.includes('user') || rowStr.includes('mapel') || rowStr.includes('wali'))) {
+                        headerRowIdx = i;
+                        break;
+                    }
+                } else {
+                    if (rowStr.includes('nama') && (rowStr.includes('absen') || rowStr.includes('nisn') || rowStr.includes('user') || rowStr.includes('kelas'))) {
+                        headerRowIdx = i;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback jika tidak terdeteksi spesifik, gunakan baris pertama
+            if (headerRowIdx === -1) headerRowIdx = 0;
+
+            const headers = (rows[headerRowIdx] || []).map(h => (h || '').toString().trim());
+
+            // Deteksi pemetaan indeks kolom secara dinamis & fleksibel
+            headers.forEach((h, idx) => {
+                const low = h.toLowerCase();
+                if (/nama/i.test(low)) colMap.nama = idx;
+                else if (/username|login/i.test(low)) colMap.user = idx;
+                else if (/password|pass/i.test(low)) colMap.pass = idx;
+                else if (/mapel|mata\s*pelajaran/i.test(low)) colMap.mapel = idx;
+                else if (/wali\s*kelas|is_wali/i.test(low)) colMap.wali = idx;
+                else if (/kelas\s*binaan|binaan/i.test(low)) colMap.binaan = idx;
+                else if (/absen|nisn|induk/i.test(low)) colMap.absen = idx;
+                else if (/kelas/i.test(low)) colMap.kelas = idx;
+            });
+
+            // Nilai default indeks jika nama header berbeda
             if (currentImportTarget === 'guru') {
-                thead.innerHTML = `<tr><th class="p-2">Nama</th><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Mapel</th><th class="p-2">Wali Kelas?</th><th class="p-2">Kelas Binaan</th></tr>`;
+                if (colMap.nama === undefined) colMap.nama = 0;
+                if (colMap.user === undefined) colMap.user = 1;
+                if (colMap.pass === undefined) colMap.pass = 2;
+                if (colMap.mapel === undefined) colMap.mapel = 3;
+                if (colMap.wali === undefined) colMap.wali = 4;
+                if (colMap.binaan === undefined) colMap.binaan = 5;
+            } else if (currentImportTarget === 'siswa') {
+                if (colMap.absen === undefined) colMap.absen = 0;
+                if (colMap.nama === undefined) colMap.nama = 1;
+                if (colMap.user === undefined) colMap.user = 2;
+                if (colMap.pass === undefined) colMap.pass = 3;
+                if (colMap.kelas === undefined) colMap.kelas = 4;
+            } else if (currentImportTarget === 'wali-siswa') {
+                if (colMap.absen === undefined) colMap.absen = 0;
+                if (colMap.nama === undefined) colMap.nama = 1;
+                if (colMap.user === undefined) colMap.user = 2;
+                if (colMap.pass === undefined) colMap.pass = 3;
+            }
+
+            // Filter baris data (abaikan baris kosong dan baris petunjuk/keterangan)
+            const dataRows = rows.slice(headerRowIdx + 1).filter(r => {
+                if (!r || r.length === 0) return false;
+                const nonEmpty = r.filter(c => c !== undefined && c !== null && c.toString().trim() !== '');
+                if (nonEmpty.length === 0) return false;
+                const firstStr = (nonEmpty[0] || '').toString().toLowerCase().trim();
+                if (firstStr.startsWith('petunjuk') || firstStr.startsWith('catatan') || firstStr.startsWith('*')) return false;
+                return true;
+            });
+
+            if (currentImportTarget === 'guru') {
+                thead.innerHTML = `<tr><th class="p-2">Nama Lengkap</th><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Mata Pelajaran (Terbaca)</th><th class="p-2">Wali Kelas?</th><th class="p-2">Kelas Binaan</th></tr>`;
                 
                 dataRows.forEach(r => {
-                    const nama = r[0] || 'Nama Guru';
-                    const username = (r[1] || 'guru_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[2] || 'pass123').toString().trim();
-                    const mapel = (r[3] || 'Umum').toString();
-                    const isWaliStr = (r[4] || 'Tidak').toString().toLowerCase();
-                    const isWali = isWaliStr === 'ya' || isWaliStr === 'true' || isWaliStr === '1';
-                    const kelasBinaan = isWali ? (r[5] || '').toString().trim() : '';
+                    const nama = (r[colMap.nama] || '').toString().trim();
+                    if (!nama) return;
+                    const username = (r[colMap.user] || 'guru_' + Math.floor(Math.random()*1000)).toString().trim();
+                    const password = (r[colMap.pass] || 'pass123').toString().trim();
+                    const rawMapel = (r[colMap.mapel] || '').toString().trim();
+                    const isWaliStr = (r[colMap.wali] || 'Tidak').toString().toLowerCase().trim();
+                    const isWali = isWaliStr === 'ya' || isWaliStr === 'true' || isWaliStr === '1' || isWaliStr === 'y';
+                    const kelasBinaan = isWali ? (r[colMap.binaan] || '').toString().trim() : '';
+
+                    // Resolusi cerdas Kode Mapel / Nama Mapel
+                    const mapelResolved = [];
+                    if (rawMapel) {
+                        const tokens = rawMapel.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+                        tokens.forEach(tok => {
+                            const subMatch = (state.db.subjects || []).find(s => 
+                                (s.kode && s.kode.trim().toUpperCase() === tok.toUpperCase()) ||
+                                (s.nama && s.nama.trim().toLowerCase() === tok.toLowerCase())
+                            );
+                            if (subMatch) {
+                                if (!mapelResolved.includes(subMatch.nama)) mapelResolved.push(subMatch.nama);
+                            } else {
+                                if (!mapelResolved.includes(tok)) mapelResolved.push(tok);
+                            }
+                        });
+                    }
+                    if (mapelResolved.length === 0) mapelResolved.push('Umum');
 
                     parsedExcelData.push({
                         role: 'guru',
@@ -4549,28 +4668,36 @@
                         username: username,
                         password: password,
                         nomorInduk: 'NIP-' + Math.floor(Math.random()*100000),
-                        mataPelajaran: mapel.split(',').map(m => m.trim()),
+                        mataPelajaran: mapelResolved,
                         isWaliKelas: isWali,
                         kelasBinaan: kelasBinaan
                     });
 
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-2 font-bold">${nama}</td><td class="p-2">${username}</td><td class="p-2">${password}</td><td class="p-2">${mapel}</td><td class="p-2">${isWali ? 'Ya' : 'Tidak'}</td><td class="p-2">${kelasBinaan || '-'}</td>`;
+                    tr.innerHTML = `
+                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2">${username}</td>
+                        <td class="p-2">${password}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold">${mapelResolved.join(', ')}</span></td>
+                        <td class="p-2">${isWali ? '<span class="text-emerald-700 font-bold">Ya</span>' : '<span class="text-slate-400">Tidak</span>'}</td>
+                        <td class="p-2">${kelasBinaan || '-'}</td>
+                    `;
                     tbody.appendChild(tr);
                 });
             } else if (currentImportTarget === 'siswa') {
-                thead.innerHTML = `<tr><th class="p-2">NISN</th><th class="p-2">Nama Siswa</th><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Kelas</th></tr>`;
+                thead.innerHTML = `<tr><th class="p-2">No. Absen</th><th class="p-2">Nama Siswa</th><th class="p-2">Username Login</th><th class="p-2">Password</th><th class="p-2">Kelas</th></tr>`;
 
                 dataRows.forEach(r => {
-                    const nisn = (r[0] || '').toString();
-                    const nama = r[1] || 'Nama Siswa';
-                    const username = (r[2] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[3] || 'siswa123').toString().trim();
-                    const kelas = (r[4] || 'X-IPA-1').toString().trim();
+                    const absen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? r[colMap.absen] : '').toString().trim();
+                    const nama = (r[colMap.nama] || '').toString().trim();
+                    if (!nama) return;
+                    const username = (r[colMap.user] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
+                    const password = (r[colMap.pass] || 'siswa123').toString().trim();
+                    const kelas = (r[colMap.kelas] || '10 A TKJ').toString().trim();
 
                     parsedExcelData.push({
                         role: 'siswa',
-                        nomorInduk: nisn,
+                        nomorInduk: absen,
                         namaLengkap: nama,
                         username: username,
                         password: password,
@@ -4581,32 +4708,46 @@
                     });
 
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-2">${nisn}</td><td class="p-2 font-bold">${nama}</td><td class="p-2">${username}</td><td class="p-2">${password}</td><td class="p-2">${kelas}</td>`;
+                    tr.innerHTML = `
+                        <td class="p-2 font-mono font-bold text-brand-600">${absen || '-'}</td>
+                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2">${username}</td>
+                        <td class="p-2">${password}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold">${kelas}</span></td>
+                    `;
                     tbody.appendChild(tr);
                 });
             } else if (currentImportTarget === 'wali-siswa') {
-                thead.innerHTML = `<tr><th class="p-2">NISN</th><th class="p-2">Nama Siswa</th><th class="p-2">Username</th><th class="p-2">Password</th></tr>`;
+                thead.innerHTML = `<tr><th class="p-2">No. Absen</th><th class="p-2">Nama Siswa</th><th class="p-2">Username Login</th><th class="p-2">Password</th></tr>`;
+
+                const kelas = state.currentUser?.kelasBinaan || '';
 
                 dataRows.forEach(r => {
-                    const nisn = (r[0] || '').toString();
-                    const nama = r[1] || 'Nama Siswa';
-                    const username = (r[2] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[3] || 'pass123').toString().trim();
+                    const absen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? r[colMap.absen] : '').toString().trim();
+                    const nama = (r[colMap.nama] || '').toString().trim();
+                    if (!nama) return;
+                    const username = (r[colMap.user] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
+                    const password = (r[colMap.pass] || 'pass123').toString().trim();
 
                     parsedExcelData.push({
                         role: 'siswa',
-                        nomorInduk: nisn,
+                        nomorInduk: absen,
                         namaLengkap: nama,
                         username: username,
                         password: password,
-                        kelas: state.currentUser.kelasBinaan,
+                        kelas: kelas,
                         isWaliKelas: false,
                         kelasBinaan: '',
                         mataPelajaran: []
                     });
 
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-2">${nisn}</td><td class="p-2 font-bold">${nama}</td><td class="p-2">${username}</td><td class="p-2">${password}</td>`;
+                    tr.innerHTML = `
+                        <td class="p-2 font-mono font-bold text-emerald-600">${absen || '-'}</td>
+                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2">${username}</td>
+                        <td class="p-2">${password}</td>
+                    `;
                     tbody.appendChild(tr);
                 });
             }
@@ -4654,38 +4795,78 @@
             }
         };
 
-        // GENERATOR TEMPLATE EXCEL MENGGUNAKAN SHEETJS
+        // GENERATOR TEMPLATE EXCEL MENGGUNAKAN SHEETJS DENGAN PETUNJUK RAPI
         window.downloadExcelTemplate = function(type) {
             const wb = XLSX.utils.book_new();
 
             if (type === 'guru') {
+                const subCodes = (state.db.subjects || []).map(s => s.kode).filter(Boolean);
+                const codeHint = subCodes.length > 0 ? ` (Contoh kode terdaftar: ${subCodes.slice(0, 10).join(', ')})` : '';
+
                 const wsData = [
-                    ['Nama Lengkap', 'Username', 'Password', 'Mata Pelajaran (Pisahkan Koma)', 'Wali Kelas (Ya/Tidak)', 'Kelas Binaan'],
-                    ['Ahmad Fauzi, S.Pd', 'guru_ahmad', 'ahmad123', 'Matematika, Fisika', 'Ya', 'X-IPA-1'],
-                    ['Ratna Dewi, M.Pd', 'guru_ratna', 'ratna123', 'Bahasa Indonesia', 'Tidak', ''],
-                    ['Hendra Gunawan, S.Kom', 'guru_hendra', 'hendra123', 'Informatika', 'Ya', 'X-IPS-1']
+                    ['PETUNJUK PENGISIAN DATA GURU & WALI KELAS:'],
+                    ['1. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + '. Jika mengampu lebih dari 1 mapel, pisahkan dengan koma (,).'],
+                    ['2. Kolom "Wali Kelas": Diisi "Ya" atau "Tidak".'],
+                    ['3. Kolom "Kelas Binaan": Wajib diisi jika Wali Kelas = "Ya" (contoh: 10 A TKJ). Kosongkan jika bukan wali kelas.'],
+                    ['4. Kolom "Username" & "Password": Gunakan teks tanpa spasi untuk kredensial login.'],
+                    [''],
+                    ['Nama Lengkap', 'Username', 'Password', 'Mata Pelajaran', 'Wali Kelas', 'Kelas Binaan'],
+                    ['Ahmad Fauzi, S.Pd', 'guru_ahmad', 'ahmad123', 'MTK, ASJ, BIND', 'Ya', '10 A TKJ'],
+                    ['Ratna Dewi, M.Pd', 'guru_ratna', 'ratna123', 'AIJ, TLJ', 'Tidak', ''],
+                    ['Hendra Gunawan, S.Kom', 'guru_hendra', 'hendra123', 'WD', 'Ya', '10 B TKJ']
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = [
+                    { wch: 28 },
+                    { wch: 16 },
+                    { wch: 16 },
+                    { wch: 26 },
+                    { wch: 14 },
+                    { wch: 18 }
+                ];
                 XLSX.utils.book_append_sheet(wb, ws, 'Template Guru');
                 XLSX.writeFile(wb, 'template_data_guru.xlsx');
             } else if (type === 'siswa') {
                 const wsData = [
-                    ['NISN / No Induk', 'Nama Lengkap', 'Username Login', 'Password', 'Kelas'],
-                    ['10293841', 'Andi Pratama', 'siswa_andi', 'andi2026', 'X-IPA-1'],
-                    ['10293842', 'Cynthia Aurelia', 'siswa_cynthia', 'cynthia2026', 'X-IPA-1'],
-                    ['10293843', 'Dimas Satria', 'siswa_dimas', 'dimas2026', 'X-IPS-1']
+                    ['PETUNJUK PENGISIAN DATA SISWA:'],
+                    ['1. Kolom "No Absen": Diisi nomor urut absen siswa di kelasnya (contoh: 1, 2, 3, dst).'],
+                    ['2. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
+                    ['3. Kolom "Username Login" & "Password": Gunakan teks unik tanpa spasi untuk login siswa.'],
+                    [''],
+                    ['No Absen', 'Nama Lengkap', 'Username Login', 'Password', 'Kelas'],
+                    ['1', 'Andi Pratama', 'siswa_andi', 'andi2026', '10 A TKJ'],
+                    ['2', 'Cynthia Aurelia', 'siswa_cynthia', 'cynthia2026', '10 A TKJ'],
+                    ['1', 'Dimas Satria', 'siswa_dimas', 'dimas2026', '10 B TKJ']
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = [
+                    { wch: 12 },
+                    { wch: 28 },
+                    { wch: 18 },
+                    { wch: 16 },
+                    { wch: 16 }
+                ];
                 XLSX.utils.book_append_sheet(wb, ws, 'Template Siswa');
                 XLSX.writeFile(wb, 'template_data_siswa.xlsx');
             } else if (type === 'wali-siswa') {
                 const kelas = state.currentUser?.kelasBinaan || 'KelasBinaan';
                 const wsData = [
-                    ['NISN / No Induk', 'Nama Lengkap Siswa', 'Username Login', 'Password'],
-                    ['10293850', 'Fajar Ramadhan', 'siswa_fajar', 'pass123'],
-                    ['10293851', 'Gita Gutawa', 'siswa_gita', 'pass123']
+                    [`PETUNJUK PENGISIAN DATA SISWA KELAS ${kelas}:`],
+                    [`1. Kolom "No Absen": Diisi nomor urut absen siswa di kelas ${kelas} (contoh: 1, 2, 3, dst).`],
+                    ['2. Kolom "Username Login" & "Password": Gunakan teks unik tanpa spasi untuk login siswa.'],
+                    [''],
+                    ['No Absen', 'Nama Lengkap Siswa', 'Username Login', 'Password'],
+                    ['1', 'Fajar Ramadhan', 'siswa_fajar', 'pass123'],
+                    ['2', 'Gita Gutawa', 'siswa_gita', 'pass123'],
+                    ['3', 'Hadi Permana', 'siswa_hadi', 'pass123']
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = [
+                    { wch: 12 },
+                    { wch: 28 },
+                    { wch: 18 },
+                    { wch: 16 }
+                ];
                 XLSX.utils.book_append_sheet(wb, ws, `Siswa ${kelas}`);
                 XLSX.writeFile(wb, `template_siswa_${kelas}.xlsx`);
             }
@@ -5366,7 +5547,13 @@
             if (filterKelas) {
                 targetStudents = targetStudents.filter(u => u.kelas === filterKelas);
             }
-            targetStudents.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+            // Urutkan siswa berdasarkan No. Absen secara numerik
+            targetStudents.sort((a, b) => {
+                const nA = parseInt(a.nomorInduk, 10);
+                const nB = parseInt(b.nomorInduk, 10);
+                if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                return (a.namaLengkap || '').localeCompare(b.namaLengkap || '');
+            });
 
             // 2. Petakan status pengumpulan masing-masing siswa
             const submissions = state.db.submissions || [];
@@ -5445,7 +5632,7 @@
                             <td class="p-3">
                                 <div class="font-bold text-slate-900">${std.namaLengkap}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500 font-mono">
-                                    <span>NISN: ${std.nomorInduk || '-'}</span>
+                                    <span>No. Absen: ${std.nomorInduk || '-'}</span>
                                     <span>•</span>
                                     <span class="text-brand-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span>
                                 </div>
@@ -5486,7 +5673,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div>
                                     <div class="font-bold text-slate-900 text-xs">${std.namaLengkap}</div>
-                                    <div class="text-[10px] text-slate-500 font-mono mt-0.5">NISN: ${std.nomorInduk || '-'} • <span class="text-brand-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span></div>
+                                    <div class="text-[10px] text-slate-500 font-mono mt-0.5">No. Absen: ${std.nomorInduk || '-'} • <span class="text-brand-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span></div>
                                 </div>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0">
                                     <i class="fa-solid fa-circle-check"></i> Sudah Mengirim
@@ -5527,7 +5714,7 @@
                             <td class="p-3">
                                 <div class="font-bold text-slate-800">${std.namaLengkap}</div>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-400 font-mono">
-                                    <span>NISN: ${std.nomorInduk || '-'}</span>
+                                    <span>No. Absen: ${std.nomorInduk || '-'}</span>
                                     <span>•</span>
                                     <span class="text-slate-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span>
                                 </div>
@@ -5561,7 +5748,7 @@
                             <div class="flex items-start justify-between gap-2">
                                 <div>
                                     <div class="font-bold text-slate-800 text-xs">${std.namaLengkap}</div>
-                                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">NISN: ${std.nomorInduk || '-'} • <span class="text-slate-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span></div>
+                                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">No. Absen: ${std.nomorInduk || '-'} • <span class="text-slate-600 font-semibold">${std.kelas || filterKelas || task.targetKelas}</span></div>
                                 </div>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 shrink-0">
                                     <i class="fa-solid fa-clock-rotate-left"></i> Belum Mengirim
@@ -5588,7 +5775,13 @@
             if (filterKelas) {
                 targetStudents = targetStudents.filter(u => u.kelas === filterKelas);
             }
-            targetStudents.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || ''));
+            // Urutkan siswa berdasarkan No. Absen secara numerik
+            targetStudents.sort((a, b) => {
+                const nA = parseInt(a.nomorInduk, 10);
+                const nB = parseInt(b.nomorInduk, 10);
+                if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                return (a.namaLengkap || '').localeCompare(b.namaLengkap || '');
+            });
 
             const submissions = state.db.submissions || [];
             const pendingStudents = targetStudents.filter(std => {
@@ -5600,6 +5793,14 @@
                 return;
             }
 
+            // Urutkan siswa belum kirim berdasarkan No. Absen secara numerik
+            pendingStudents.sort((a, b) => {
+                const nA = parseInt(a.nomorInduk, 10);
+                const nB = parseInt(b.nomorInduk, 10);
+                if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                return (a.namaLengkap || '').localeCompare(b.namaLengkap || '');
+            });
+
             let textToCopy = `📋 *DAFTAR SISWA BELUM MENGUMPULKAN TUGAS*\n`;
             textToCopy += `Judul Tugas: ${task.judul}\n`;
             textToCopy += `Mata Pelajaran: ${task.mapel}\n`;
@@ -5608,7 +5809,7 @@
             textToCopy += `Jumlah Belum Kirim: ${pendingStudents.length} siswa\n\n`;
             textToCopy += `Daftar Nama:\n`;
             pendingStudents.forEach((std, idx) => {
-                textToCopy += `${idx + 1}. ${std.namaLengkap} (NISN: ${std.nomorInduk || '-'})\n`;
+                textToCopy += `${idx + 1}. ${std.namaLengkap} (No. Absen: ${std.nomorInduk || '-'})\n`;
             });
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -6185,7 +6386,7 @@
                         div.innerHTML = `
                             <div>
                                 <p class="font-bold text-slate-800">${s.namaLengkap}</p>
-                                <p class="text-[11px] text-slate-500">Kelas: <span class="font-semibold text-slate-700">${s.kelas || '-'}</span> • NISN: ${s.nomorInduk || '-'}</p>
+                                <p class="text-[11px] text-slate-500">Kelas: <span class="font-semibold text-slate-700">${s.kelas || '-'}</span> • No. Absen: ${s.nomorInduk || '-'}</p>
                             </div>
                             <div class="text-right">
                                 <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">
@@ -6764,6 +6965,16 @@
                 tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">Tidak ada data siswa yang cocok dengan filter.</td></tr>`;
                 return;
             }
+
+            // Urutkan siswa berdasarkan rombel kelas, lalu nomor absen secara numerik
+            filtered.sort((a, b) => {
+                const kComp = (a.siswa.kelas || '').localeCompare(b.siswa.kelas || '');
+                if (kComp !== 0) return kComp;
+                const nA = parseInt(a.siswa.nomorInduk, 10);
+                const nB = parseInt(b.siswa.nomorInduk, 10);
+                if (!isNaN(nA) && !isNaN(nB)) return nA - nB;
+                return (a.siswa.nomorInduk || '').localeCompare(b.siswa.nomorInduk || '', undefined, { numeric: true });
+            });
 
             filtered.forEach(item => {
                 const s = item.siswa;
