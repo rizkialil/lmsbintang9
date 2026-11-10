@@ -3213,6 +3213,23 @@
                 } catch(e) {}
             }
 
+            // Auto-select filter hari ke hari ini ketika membuka panel monitoring
+            const hariNamesList = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const todayDayName = hariNamesList[new Date().getDay()];
+            const isSchoolDay = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].includes(todayDayName);
+
+            if (panelId === 'kepsek-guru') {
+                const selectHari = document.getElementById('filter-kepsek-guru-hari');
+                if (selectHari) {
+                    selectHari.value = isSchoolDay ? 'today' : 'all';
+                }
+            } else if (panelId === 'wali-monitoring') {
+                const selectHari = document.getElementById('filter-wali-mon-hari');
+                if (selectHari) {
+                    selectHari.value = isSchoolDay ? 'today' : 'all';
+                }
+            }
+
             // Panggil fungsi render sesuai panel
             renderActivePanelData(panelId);
 
@@ -4228,6 +4245,12 @@
             const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const todayName = hariNames[new Date().getDay()];
 
+            const selectHari = document.getElementById('filter-wali-mon-hari');
+            if (selectHari) {
+                const optToday = selectHari.querySelector('option[value="today"]');
+                if (optToday) optToday.innerText = `Terjadwal Hari Ini (${todayName})`;
+            }
+
             const schedules = state.db.schedules || [];
             const materials = state.db.materials || [];
             const assignments = state.db.assignments || [];
@@ -4264,8 +4287,7 @@
                 const entry = entryMap.get(key);
                 if (s.hari) {
                     entry.schedules.push({
-                        hari: s.hari,
-                        jam: (s.jamMulai && s.jamSelesai) ? `${s.jamMulai} - ${s.jamSelesai}` : (s.jamMulai || '')
+                        hari: s.hari
                     });
                 }
             });
@@ -4417,7 +4439,7 @@
                 }
 
                 const schedBadges = item.schedules.length > 0
-                    ? item.schedules.map(sc => `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${sc.hari === todayName ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 text-slate-600'}">${sc.hari}${sc.jam ? ` (${sc.jam})` : ''}</span>`).join(' ')
+                    ? item.schedules.map(sc => `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${sc.hari === todayName ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 text-slate-600'}">${sc.hari}</span>`).join(' ')
                     : '<span class="text-slate-400 italic text-[11px]">Belum dijadwalkan</span>';
 
                 const matPreview = item.matCount > 0
@@ -6713,6 +6735,12 @@
 
             const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const todayName = hariNames[new Date().getDay()];
+
+            const selectHari = document.getElementById('filter-kepsek-guru-hari');
+            if (selectHari) {
+                const optToday = selectHari.querySelector('option[value="today"]');
+                if (optToday) optToday.innerText = `Terjadwal Hari Ini (${todayName})`;
+            }
 
             const teacherData = guruList.map(g => {
                 const matCount = materials.filter(m => m.guruId === g.id || (m.guruNama && m.guruNama === g.namaLengkap)).length;
