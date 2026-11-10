@@ -1070,8 +1070,16 @@
                                 <h3 id="schedule-panel-title" class="text-base font-bold text-slate-900">Jadwal Pelajaran Sekolah</h3>
                                 <p id="schedule-panel-subtitle" class="text-xs text-slate-500">Daftar alokasi mata pelajaran, kelas, dan guru pengampu per hari</p>
                             </div>
-                            <!-- Aksi Tambah Jadwal (Khusus Admin) -->
-                            <div id="schedule-admin-actions" class="hidden flex items-center gap-2">
+                            <!-- Aksi Tambah & Import Jadwal (Khusus Admin) -->
+                            <div id="schedule-admin-actions" class="hidden flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="downloadExcelTemplate('jadwal')" title="Unduh template Excel jadwal pelajaran" class="px-3 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                                    <span class="hidden sm:inline">Template Excel</span>
+                                </button>
+                                <button type="button" onclick="openImportModal('jadwal')" title="Import jadwal massal dari spreadsheet Excel" class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-file-import"></i>
+                                    <span>Import Excel</span>
+                                </button>
                                 <button type="button" onclick="openModalCreateSchedule()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
                                     <i class="fa-solid fa-plus"></i>
                                     <span>Tambah Jadwal</span>
@@ -1757,9 +1765,13 @@
                     </select>
                 </div>
 
-                <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <div class="pt-4 flex flex-wrap items-center justify-end gap-2 border-t border-slate-100">
                     <button type="button" onclick="closeModal('modal-manage-schedule')" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
                         Batal
+                    </button>
+                    <button type="button" id="btn-submit-schedule-continue" onclick="handleSaveScheduleSubmit(event, true)" class="px-4 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-forward-step"></i>
+                        <span>Simpan & Lanjut Tambah</span>
                     </button>
                     <button type="submit" id="btn-submit-schedule" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-2">
                         <span>Simpan Jadwal</span>
@@ -4520,6 +4532,9 @@
             } else if (target === 'wali-siswa') {
                 titleEl.innerText = `Import Siswa Kelas ${state.currentUser.kelasBinaan}`;
                 subEl.innerText = `Unggah spreadsheet data siswa khusus rombel ${state.currentUser.kelasBinaan}`;
+            } else if (target === 'jadwal') {
+                titleEl.innerText = 'Import Jadwal Pelajaran via Excel';
+                subEl.innerText = 'Unggah spreadsheet alokasi jadwal pelajaran sekolah';
             }
 
             openModal('modal-import-excel');
@@ -4577,6 +4592,11 @@
                         headerRowIdx = i;
                         break;
                     }
+                } else if (currentImportTarget === 'jadwal') {
+                    if (rowStr.includes('hari') && (rowStr.includes('jam') || rowStr.includes('mapel') || rowStr.includes('guru') || rowStr.includes('kelas'))) {
+                        headerRowIdx = i;
+                        break;
+                    }
                 } else {
                     if (rowStr.includes('nama') && (rowStr.includes('absen') || rowStr.includes('nisn') || rowStr.includes('user') || rowStr.includes('kelas'))) {
                         headerRowIdx = i;
@@ -4593,7 +4613,11 @@
             // Deteksi pemetaan indeks kolom secara dinamis & fleksibel
             headers.forEach((h, idx) => {
                 const low = h.toLowerCase();
-                if (/nama/i.test(low)) colMap.nama = idx;
+                if (/hari/i.test(low)) colMap.hari = idx;
+                else if (/mulai|jam\s*mulai/i.test(low)) colMap.jamMulai = idx;
+                else if (/selesai|jam\s*selesai/i.test(low)) colMap.jamSelesai = idx;
+                else if (/guru|pengampu/i.test(low)) colMap.guru = idx;
+                else if (/nama/i.test(low)) colMap.nama = idx;
                 else if (/username|login/i.test(low)) colMap.user = idx;
                 else if (/password|pass/i.test(low)) colMap.pass = idx;
                 else if (/mapel|mata\s*pelajaran/i.test(low)) colMap.mapel = idx;
@@ -4622,6 +4646,13 @@
                 if (colMap.nama === undefined) colMap.nama = 1;
                 if (colMap.user === undefined) colMap.user = 2;
                 if (colMap.pass === undefined) colMap.pass = 3;
+            } else if (currentImportTarget === 'jadwal') {
+                if (colMap.hari === undefined) colMap.hari = 0;
+                if (colMap.jamMulai === undefined) colMap.jamMulai = 1;
+                if (colMap.jamSelesai === undefined) colMap.jamSelesai = 2;
+                if (colMap.kelas === undefined) colMap.kelas = 3;
+                if (colMap.mapel === undefined) colMap.mapel = 4;
+                if (colMap.guru === undefined) colMap.guru = 5;
             }
 
             // Filter baris data (abaikan baris kosong dan baris petunjuk/keterangan)
@@ -4753,6 +4784,92 @@
                     `;
                     tbody.appendChild(tr);
                 });
+            } else if (currentImportTarget === 'jadwal') {
+                thead.innerHTML = `<tr><th class="p-2">Hari</th><th class="p-2">Jam</th><th class="p-2">Kelas</th><th class="p-2">Mata Pelajaran</th><th class="p-2">Guru Pengampu</th></tr>`;
+
+                dataRows.forEach(r => {
+                    let hari = (r[colMap.hari] || '').toString().trim();
+                    const validDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const matchedDay = validDays.find(d => d.toLowerCase() === hari.toLowerCase());
+                    if (matchedDay) hari = matchedDay;
+                    if (!hari) hari = 'Senin';
+
+                    let jamMulai = (r[colMap.jamMulai] !== undefined && r[colMap.jamMulai] !== null ? r[colMap.jamMulai] : '').toString().trim();
+                    let jamSelesai = (r[colMap.jamSelesai] !== undefined && r[colMap.jamSelesai] !== null ? r[colMap.jamSelesai] : '').toString().trim();
+
+                    // Tangani format jam jika digabung: "07:30 - 09:00"
+                    if (jamMulai.includes('-') && !jamSelesai) {
+                        const parts = jamMulai.split('-');
+                        jamMulai = parts[0].trim();
+                        jamSelesai = parts[1].trim();
+                    }
+
+                    // Format pecahan waktu Excel jika berupa angka
+                    if (typeof r[colMap.jamMulai] === 'number' && r[colMap.jamMulai] < 1) {
+                        const totalMin = Math.round(r[colMap.jamMulai] * 24 * 60);
+                        const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
+                        const m = String(totalMin % 60).padStart(2, '0');
+                        jamMulai = `${h}:${m}`;
+                    }
+                    if (typeof r[colMap.jamSelesai] === 'number' && r[colMap.jamSelesai] < 1) {
+                        const totalMin = Math.round(r[colMap.jamSelesai] * 24 * 60);
+                        const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
+                        const m = String(totalMin % 60).padStart(2, '0');
+                        jamSelesai = `${h}:${m}`;
+                    }
+
+                    if (!jamMulai) jamMulai = '07:30';
+                    if (!jamSelesai) jamSelesai = '09:00';
+                    if (/^\d{1,2}:\d{2}$/.test(jamMulai)) {
+                        const [h, m] = jamMulai.split(':');
+                        jamMulai = `${h.padStart(2, '0')}:${m}`;
+                    }
+                    if (/^\d{1,2}:\d{2}$/.test(jamSelesai)) {
+                        const [h, m] = jamSelesai.split(':');
+                        jamSelesai = `${h.padStart(2, '0')}:${m}`;
+                    }
+
+                    const rawKelas = (r[colMap.kelas] || '').toString().trim();
+                    const matchKelas = (state.db.classes || []).find(c => c.namaKelas.toLowerCase() === rawKelas.toLowerCase());
+                    const kelas = matchKelas ? matchKelas.namaKelas : (rawKelas || '10 A TKJ');
+
+                    const rawMapel = (r[colMap.mapel] || '').toString().trim();
+                    const matchMapel = (state.db.subjects || []).find(s => 
+                        (s.kode && s.kode.toLowerCase() === rawMapel.toLowerCase()) ||
+                        (s.nama && s.nama.toLowerCase() === rawMapel.toLowerCase())
+                    );
+                    const mapel = matchMapel ? matchMapel.nama : (rawMapel || 'Mata Pelajaran');
+
+                    const rawGuru = (r[colMap.guru] || '').toString().trim();
+                    const matchGuru = (state.db.users || []).find(u => u.role === 'guru' && (
+                        (u.namaLengkap && u.namaLengkap.toLowerCase() === rawGuru.toLowerCase()) ||
+                        (u.username && u.username.toLowerCase() === rawGuru.toLowerCase()) ||
+                        (u.namaLengkap && u.namaLengkap.toLowerCase().includes(rawGuru.toLowerCase()))
+                    ));
+                    const guruId = matchGuru ? matchGuru.id : ('g_' + Date.now());
+                    const guruNama = matchGuru ? matchGuru.namaLengkap : (rawGuru || 'Guru Pengampu');
+
+                    parsedExcelData.push({
+                        type: 'jadwal',
+                        hari,
+                        jamMulai,
+                        jamSelesai,
+                        kelas,
+                        mapel,
+                        guruId,
+                        guruNama
+                    });
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="p-2"><span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700">${hari}</span></td>
+                        <td class="p-2 font-mono font-medium">${jamMulai} - ${jamSelesai}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">${kelas}</span></td>
+                        <td class="p-2 font-bold text-slate-900">${mapel}</td>
+                        <td class="p-2 text-slate-700">${guruNama}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
 
             document.getElementById('import-row-count').innerText = parsedExcelData.length;
@@ -4762,6 +4879,46 @@
 
         window.executeBulkImport = async function() {
             if (parsedExcelData.length === 0) return;
+
+            if (currentImportTarget === 'jadwal') {
+                let insertedCount = 0;
+                for (const item of parsedExcelData) {
+                    const existingIdx = state.db.schedules.findIndex(s => s.hari === item.hari && s.jamMulai === item.jamMulai && s.kelas === item.kelas);
+                    const id = existingIdx !== -1 ? state.db.schedules[existingIdx].id : ('sch_' + Date.now() + '_' + Math.floor(Math.random()*1000));
+                    
+                    const scheduleObj = {
+                        id,
+                        hari: item.hari,
+                        kelas: item.kelas,
+                        mapel: item.mapel,
+                        guruId: item.guruId,
+                        guruNama: item.guruNama,
+                        jamMulai: item.jamMulai,
+                        jamSelesai: item.jamSelesai,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    if (existingIdx !== -1) {
+                        state.db.schedules[existingIdx] = scheduleObj;
+                    } else {
+                        state.db.schedules.push(scheduleObj);
+                    }
+
+                    if (!IS_PREVIEW && supabase) {
+                        try {
+                            await supabase.from('schedules').upsert([mapScheduleToDb(scheduleObj)]);
+                        } catch(e) {
+                            console.warn("Gagal simpan jadwal imported ke Supabase:", e);
+                        }
+                    }
+                    insertedCount++;
+                }
+
+                closeModal('modal-import-excel');
+                showToast(`Berhasil mengimpor ${insertedCount} jadwal pelajaran dari Excel!`, 'success');
+                renderScheduleTable();
+                return;
+            }
 
             let insertedCount = 0;
             for (const item of parsedExcelData) {
@@ -4949,6 +5106,37 @@
                 applyExcelTemplateStyles(ws, 4, wsData.length, 4, [0]);
                 XLSX.utils.book_append_sheet(wb, ws, `Siswa ${kelas}`);
                 XLSX.writeFile(wb, `template_siswa_${kelas}.xlsx`);
+            } else if (type === 'jadwal') {
+                const subCodes = (state.db.subjects || []).map(s => s.kode).filter(Boolean);
+                const codeHint = subCodes.length > 0 ? ` (Contoh kode mapel: ${subCodes.slice(0, 8).join(', ')})` : '';
+
+                const wsData = [
+                    ['Petunjuk Pengisian Jadwal Pelajaran Sekolah:'],
+                    ['1. Kolom "Hari": Diisi salah satu nama hari (Senin, Selasa, Rabu, Kamis, Jumat, Sabtu).'],
+                    ['2. Kolom "Jam Mulai" & "Jam Selesai": Gunakan format 24 jam JJ:MM (contoh: 07:30, 09:00, 10:15).'],
+                    ['3. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
+                    ['4. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + ' atau Nama Lengkap Mata Pelajaran.'],
+                    ['5. Kolom "Guru Pengampu": Diisi Nama Lengkap Guru atau Username Guru yang mengajar.'],
+                    [''],
+                    ['Hari', 'Jam Mulai', 'Jam Selesai', 'Kelas', 'Mata Pelajaran', 'Guru Pengampu'],
+                    ['Senin', '07:30', '09:00', '10 A TKJ', 'MTK', 'Ahmad Fauzi, S.Pd'],
+                    ['Senin', '09:00', '10:30', '10 A TKJ', 'ASJ', 'Ahmad Fauzi, S.Pd'],
+                    ['Senin', '07:30', '09:00', '10 B TKJ', 'WD', 'Hendra Gunawan, S.Kom'],
+                    ['Selasa', '07:30', '09:00', '10 A TKJ', 'AIJ', 'Ratna Dewi, M.Pd'],
+                    ['Selasa', '09:00', '10:30', '10 A TKJ', 'TLJ', 'Ratna Dewi, M.Pd']
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                ws['!cols'] = [
+                    { wch: 14 },
+                    { wch: 14 },
+                    { wch: 14 },
+                    { wch: 18 },
+                    { wch: 24 },
+                    { wch: 28 }
+                ];
+                applyExcelTemplateStyles(ws, 7, wsData.length, 6, [0, 1, 2, 3]);
+                XLSX.utils.book_append_sheet(wb, ws, 'Jadwal Pelajaran');
+                XLSX.writeFile(wb, 'template_jadwal_pelajaran.xlsx');
             }
             showToast('Template Excel berhasil diunduh.', 'info');
         };
@@ -6843,10 +7031,13 @@
                     <td class="p-3.5 text-center">${statusBadge}</td>
                     ${u.role === 'admin' ? `
                     <td class="p-3.5 text-right whitespace-nowrap">
-                        <button type="button" onclick="editSchedule('${item.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition inline-flex items-center justify-center">
+                        <button type="button" onclick="duplicateSchedule('${item.id}')" title="Duplikat / Salin Jadwal" class="w-7 h-7 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition inline-flex items-center justify-center">
+                            <i class="fa-solid fa-copy text-xs"></i>
+                        </button>
+                        <button type="button" onclick="editSchedule('${item.id}')" title="Edit Jadwal" class="w-7 h-7 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition inline-flex items-center justify-center ml-1">
                             <i class="fa-solid fa-pen-to-square text-xs"></i>
                         </button>
-                        <button type="button" onclick="deleteSchedule('${item.id}')" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition inline-flex items-center justify-center ml-1">
+                        <button type="button" onclick="deleteSchedule('${item.id}')" title="Hapus Jadwal" class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition inline-flex items-center justify-center ml-1">
                             <i class="fa-solid fa-trash-can text-xs"></i>
                         </button>
                     </td>` : ''}
@@ -6861,6 +7052,12 @@
             const form = document.getElementById('form-manage-schedule');
             form.reset();
             document.getElementById('manage-schedule-id').value = '';
+
+            const btnContinue = document.getElementById('btn-submit-schedule-continue');
+            if (btnContinue) {
+                if (editId) btnContinue.classList.add('hidden');
+                else btnContinue.classList.remove('hidden');
+            }
 
             // Populate kelas
             const selectKelas = document.getElementById('manage-schedule-kelas');
@@ -6916,6 +7113,25 @@
             modal.classList.remove('hidden');
         };
 
+        window.duplicateSchedule = function(id) {
+            const item = state.db.schedules.find(s => s.id === id);
+            if (!item) return;
+
+            openModalCreateSchedule(); // Buka modal dan muat opsi kelas, mapel, guru
+            const title = document.getElementById('modal-schedule-title');
+            if (title) title.innerText = 'Duplikat Jadwal Pelajaran';
+
+            document.getElementById('manage-schedule-id').value = ''; // Kosongkan ID agar tersimpan sebagai record baru
+            document.getElementById('manage-schedule-hari').value = item.hari;
+            document.getElementById('manage-schedule-mulai').value = item.jamMulai || '07:30';
+            document.getElementById('manage-schedule-selesai').value = item.jamSelesai || '09:00';
+            document.getElementById('manage-schedule-kelas').value = item.kelas;
+            document.getElementById('manage-schedule-mapel').value = item.mapel;
+            document.getElementById('manage-schedule-guru').value = item.guruId;
+
+            showToast('Jadwal berhasil disalin ke formulir. Silakan sesuaikan kelas/hari lalu simpan.', 'info');
+        };
+
         window.editSchedule = function(id) {
             openModalCreateSchedule(id);
         };
@@ -6935,14 +7151,19 @@
             });
         };
 
-        window.handleSaveScheduleSubmit = async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-schedule');
-            btn.disabled = true;
-            btn.innerHTML = getModernSpinnerHtml('Menyimpan...');
+        window.handleSaveScheduleSubmit = async function(e, keepOpen = false) {
+            if (e && e.preventDefault) e.preventDefault();
+            const btn = keepOpen ? document.getElementById('btn-submit-schedule-continue') : document.getElementById('btn-submit-schedule');
+            const otherBtn = keepOpen ? document.getElementById('btn-submit-schedule') : document.getElementById('btn-submit-schedule-continue');
+            const originalBtnHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = getModernSpinnerHtml('Menyimpan...');
+            }
+            if (otherBtn) otherBtn.disabled = true;
 
             try {
-                const id = document.getElementById('manage-schedule-id').value || ('sch_' + Date.now());
+                const id = document.getElementById('manage-schedule-id').value || ('sch_' + Date.now() + '_' + Math.floor(Math.random()*1000));
                 const hari = document.getElementById('manage-schedule-hari').value;
                 const jamMulai = document.getElementById('manage-schedule-mulai').value;
                 const jamSelesai = document.getElementById('manage-schedule-selesai').value;
@@ -6979,14 +7200,49 @@
                     }
                 }
 
-                closeModal('modal-manage-schedule');
-                showToast('Jadwal pelajaran berhasil disimpan!', 'success');
                 renderScheduleTable();
+
+                if (keepOpen) {
+                    showToast(`Jadwal ${kelas} (${mapel}) tersimpan! Siap untuk jam berikutnya.`, 'success');
+
+                    // Hitung durasi sebelumnya untuk otomatisasi slot berikutnya
+                    let nextMulai = jamSelesai || '09:00';
+                    let nextSelesai = '10:30';
+
+                    try {
+                        const [mH, mM] = jamMulai.split(':').map(Number);
+                        const [sH, sM] = jamSelesai.split(':').map(Number);
+                        let durationMinutes = (sH * 60 + sM) - (mH * 60 + mM);
+                        if (durationMinutes <= 0 || durationMinutes > 300) durationMinutes = 90;
+
+                        const nextStartMinutes = sH * 60 + sM;
+                        const nextEndMinutes = nextStartMinutes + durationMinutes;
+                        const endH = Math.floor(nextEndMinutes / 60) % 24;
+                        const endM = nextEndMinutes % 60;
+                        nextSelesai = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+                    } catch(tErr) {
+                        nextSelesai = '10:30';
+                    }
+
+                    // Reset ID & perbarui jam, pertahankan Hari dan Kelas terpilih
+                    document.getElementById('manage-schedule-id').value = '';
+                    document.getElementById('manage-schedule-mulai').value = nextMulai;
+                    document.getElementById('manage-schedule-selesai').value = nextSelesai;
+
+                    const selectMapel = document.getElementById('manage-schedule-mapel');
+                    if (selectMapel) selectMapel.focus();
+                } else {
+                    closeModal('modal-manage-schedule');
+                    showToast('Jadwal pelajaran berhasil disimpan!', 'success');
+                }
             } catch(err) {
                 showToast('Gagal menyimpan jadwal: ' + err.message, 'error');
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>Simpan Jadwal</span>`;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnHtml;
+                }
+                if (otherBtn) otherBtn.disabled = false;
             }
         };
 
