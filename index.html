@@ -3331,6 +3331,9 @@
                     return;
                 }
 
+                // Urutkan daftar guru secara alfabetis A-Z berdasarkan nama lengkap
+                filtered.sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || '', 'id', { sensitivity: 'base' }));
+
                 filtered.forEach(u => {
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-50 transition';
@@ -4399,6 +4402,13 @@
                 tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Tidak ada data guru/mapel yang sesuai kriteria filter di kelas ${kelasBinaan}.</td></tr>`;
                 return;
             }
+
+            // Urutkan daftar guru secara alfabetis A-Z berdasarkan nama guru dan mapel
+            filteredRows.sort((a, b) => {
+                const gComp = (a.guruNama || '').localeCompare(b.guruNama || '', 'id', { sensitivity: 'base' });
+                if (gComp !== 0) return gComp;
+                return (a.mapel || '').localeCompare(b.mapel || '', 'id', { sensitivity: 'base' });
+            });
 
             filteredRows.forEach(item => {
                 let badgeStatusHtml = '';
@@ -6538,6 +6548,9 @@
                 return;
             }
 
+            // Urutkan daftar guru secara alfabetis A-Z berdasarkan nama lengkap
+            filtered.sort((a, b) => (a.guru.namaLengkap || '').localeCompare(b.guru.namaLengkap || '', 'id', { sensitivity: 'base' }));
+
             filtered.forEach(item => {
                 const g = item.guru;
                 let badgeStatusHtml = '';
@@ -6654,7 +6667,9 @@
             if (selectGuru) {
                 const prevVal = selectGuru.value;
                 selectGuru.innerHTML = '<option value="all">Semua Guru Pengampu</option>';
-                state.db.users.filter(usr => usr.role === 'guru').forEach(g => {
+                state.db.users.filter(usr => usr.role === 'guru')
+                    .sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || '', 'id', { sensitivity: 'base' }))
+                    .forEach(g => {
                     const opt = document.createElement('option');
                     opt.value = g.id;
                     opt.innerText = g.namaLengkap;
@@ -6801,7 +6816,9 @@
             // Populate guru
             const selectGuru = document.getElementById('manage-schedule-guru');
             selectGuru.innerHTML = '';
-            state.db.users.filter(u => u.role === 'guru').forEach(g => {
+            state.db.users.filter(u => u.role === 'guru')
+                .sort((a, b) => (a.namaLengkap || '').localeCompare(b.namaLengkap || '', 'id', { sensitivity: 'base' }))
+                .forEach(g => {
                 const opt = document.createElement('option');
                 opt.value = g.id;
                 opt.innerText = `${g.namaLengkap} - [${(g.mataPelajaran || []).join(', ') || 'Guru'}]`;
