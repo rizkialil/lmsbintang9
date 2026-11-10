@@ -44,8 +44,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- SheetJS (XLSX) CDN untuk Import & Export Excel -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SheetJS (XLSX) dengan Dukungan Style Visual (Warna, Font, Border) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script>
+        if (typeof XLSX === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+        }
+    </script>
 
     <style>
         body {
@@ -210,10 +215,7 @@
             <!-- TOPBAR (DESKTOP & MOBILE) -->
             <header class="glass-header sticky top-0 z-20 h-16 border-b border-slate-200/80 px-4 lg:px-8 flex items-center justify-between">
                 <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                    <button type="button" onclick="toggleMobileDrawer(true)" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm transition shrink-0" title="Buka Menu Lengkap">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="hidden sm:flex w-8 h-8 rounded-lg bg-brand-600 text-white items-center justify-center text-sm shrink-0">
+                    <div class="flex w-8 h-8 rounded-lg bg-brand-600 text-white items-center justify-center text-sm shrink-0 shadow-xs">
                         <i class="fa-solid fa-graduation-cap"></i>
                     </div>
                     <div class="min-w-0 flex-1">
@@ -3085,7 +3087,7 @@
             // Render Mobile Nav (Bottom Dock)
             if (mobileNav) {
                 if (menus.length <= 5) {
-                    // Menu <= 5 (Admin, Kepsek, Guru non-wali, Siswa): Tersebar merata (flex-1), center, tanpa tombol 'Semua'
+                    // Menu <= 5 (Admin, Kepsek, Guru non-wali, Siswa): Tersebar merata (flex-1), center
                     mobileNav.className = 'lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 bottom-nav-shadow px-2 py-1.5 flex items-center justify-around';
                     menus.forEach(m => {
                         const btn = document.createElement('button');
@@ -3097,26 +3099,17 @@
                         mobileNav.appendChild(btn);
                     });
                 } else {
-                    // Menu > 5 (Guru & Wali Kelas: 7 menu): Scrollable horizontal fleksibel + tombol 'Semua'
-                    mobileNav.className = 'lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 bottom-nav-shadow px-2 py-1.5 flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth';
+                    // Menu > 5 (Guru & Wali Kelas: 7 menu): Tampilkan seluruh 7 menu langsung tanpa tombol 'Semua'
+                    mobileNav.className = 'lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 bottom-nav-shadow px-1.5 py-1.5 flex items-center justify-between gap-0.5 overflow-x-auto no-scrollbar scroll-smooth';
                     menus.forEach(m => {
                         const btn = document.createElement('button');
                         btn.type = 'button';
                         btn.id = `nav-mob-${m.id}`;
                         btn.onclick = () => navigateTo(m.id);
-                        btn.className = 'flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 hover:text-brand-600 transition shrink-0 min-w-[56px] text-center';
-                        btn.innerHTML = `<i class="fa-solid ${m.icon} text-sm mb-1"></i><span class="text-[10px] font-medium leading-none whitespace-nowrap">${m.shortLabel || m.label}</span>`;
+                        btn.className = 'flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-slate-500 hover:text-brand-600 transition shrink-0 flex-1 min-w-[44px] text-center';
+                        btn.innerHTML = `<i class="fa-solid ${m.icon} text-sm mb-1"></i><span class="text-[9.5px] font-medium leading-none whitespace-nowrap">${m.shortLabel || m.label}</span>`;
                         mobileNav.appendChild(btn);
                     });
-
-                    // Tombol "Semua" di bar mobile untuk membuka slide drawer menu lengkap
-                    const moreBtn = document.createElement('button');
-                    moreBtn.type = 'button';
-                    moreBtn.id = 'nav-mob-drawer-toggle';
-                    moreBtn.onclick = () => toggleMobileDrawer(true);
-                    moreBtn.className = 'flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 hover:text-brand-600 transition shrink-0 min-w-[52px] text-center border-l border-slate-200/80';
-                    moreBtn.innerHTML = `<i class="fa-solid fa-bars text-sm mb-1"></i><span class="text-[10px] font-medium leading-none whitespace-nowrap">Semua</span>`;
-                    mobileNav.appendChild(moreBtn);
                 }
             }
         }
@@ -4805,7 +4798,81 @@
             }
         };
 
-        // GENERATOR TEMPLATE EXCEL MENGGUNAKAN SHEETJS DENGAN PETUNJUK RAPI
+        // HELPER STYLING TEMPLATE EXCEL (Aksen Biru, Font Petunjuk Miring 10pt, All Border)
+        function applyExcelTemplateStyles(ws, headerRowIdx, totalRows, totalCols, centerCols = []) {
+            if (!XLSX || !XLSX.utils) return;
+            const borderHeader = {
+                top: { style: 'thin', color: { rgb: '1D4ED8' } },
+                bottom: { style: 'thin', color: { rgb: '1D4ED8' } },
+                left: { style: 'thin', color: { rgb: '1D4ED8' } },
+                right: { style: 'thin', color: { rgb: '1D4ED8' } }
+            };
+            const borderBody = {
+                top: { style: 'thin', color: { rgb: 'CBD5E1' } },
+                bottom: { style: 'thin', color: { rgb: 'CBD5E1' } },
+                left: { style: 'thin', color: { rgb: 'CBD5E1' } },
+                right: { style: 'thin', color: { rgb: 'CBD5E1' } }
+            };
+
+            // 1. Judul Petunjuk (A1) - Tebal & Miring, Bukan Uppercase
+            const coordA1 = XLSX.utils.encode_cell({ r: 0, c: 0 });
+            if (ws[coordA1]) {
+                ws[coordA1].s = {
+                    font: { name: 'Calibri', sz: 11, bold: true, italic: true, color: { rgb: '1E293B' } },
+                    alignment: { vertical: 'center' }
+                };
+            }
+
+            // 2. Isi Petunjuk (Baris 1 s.d. sebelum baris kosong) - Miring 10pt
+            for (let r = 1; r < headerRowIdx - 1; r++) {
+                const coord = XLSX.utils.encode_cell({ r, c: 0 });
+                if (ws[coord]) {
+                    ws[coord].s = {
+                        font: { name: 'Calibri', sz: 10, italic: true, color: { rgb: '475569' } },
+                        alignment: { vertical: 'center' }
+                    };
+                }
+            }
+
+            // 3. Header Tabel (Aksen Biru, Teks Putih Tebal, All Border)
+            for (let c = 0; c < totalCols; c++) {
+                const coord = XLSX.utils.encode_cell({ r: headerRowIdx, c });
+                if (!ws[coord]) ws[coord] = { t: 's', v: '' };
+                ws[coord].s = {
+                    fill: { patternType: 'solid', fgColor: { rgb: '2563EB' } },
+                    font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: 'FFFFFF' } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: borderHeader
+                };
+            }
+
+            // 4. Baris Contoh Data / Isi Tabel (All Border pada setiap sel, 10pt)
+            for (let r = headerRowIdx + 1; r < totalRows; r++) {
+                for (let c = 0; c < totalCols; c++) {
+                    const coord = XLSX.utils.encode_cell({ r, c });
+                    if (!ws[coord]) ws[coord] = { t: 's', v: '' };
+                    const isCenter = centerCols.includes(c);
+                    ws[coord].s = {
+                        font: { name: 'Calibri', sz: 10, color: { rgb: '1E293B' } },
+                        alignment: { horizontal: isCenter ? 'center' : 'left', vertical: 'center' },
+                        border: borderBody
+                    };
+                }
+            }
+
+            // Atur Tinggi Baris (Row Heights)
+            const rowHeights = [];
+            for (let r = 0; r < totalRows; r++) {
+                if (r === 0) rowHeights.push({ hpt: 22 });
+                else if (r < headerRowIdx - 1) rowHeights.push({ hpt: 18 });
+                else if (r === headerRowIdx - 1) rowHeights.push({ hpt: 10 });
+                else if (r === headerRowIdx) rowHeights.push({ hpt: 26 });
+                else rowHeights.push({ hpt: 20 });
+            }
+            ws['!rows'] = rowHeights;
+        }
+
+        // GENERATOR TEMPLATE EXCEL MENGGUNAKAN SHEETJS / XLSX-JS-STYLE DENGAN TAMPILAN ESTETIK
         window.downloadExcelTemplate = function(type) {
             const wb = XLSX.utils.book_new();
 
@@ -4814,7 +4881,7 @@
                 const codeHint = subCodes.length > 0 ? ` (Contoh kode terdaftar: ${subCodes.slice(0, 10).join(', ')})` : '';
 
                 const wsData = [
-                    ['PETUNJUK PENGISIAN DATA GURU & WALI KELAS:'],
+                    ['Petunjuk Pengisian Data Guru & Wali Kelas:'],
                     ['1. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + '. Jika mengampu lebih dari 1 mapel, pisahkan dengan koma (,).'],
                     ['2. Kolom "Wali Kelas": Diisi "Ya" atau "Tidak".'],
                     ['3. Kolom "Kelas Binaan": Wajib diisi jika Wali Kelas = "Ya" (contoh: 10 A TKJ). Kosongkan jika bukan wali kelas.'],
@@ -4834,11 +4901,12 @@
                     { wch: 14 },
                     { wch: 18 }
                 ];
+                applyExcelTemplateStyles(ws, 6, wsData.length, 6, [4, 5]);
                 XLSX.utils.book_append_sheet(wb, ws, 'Template Guru');
                 XLSX.writeFile(wb, 'template_data_guru.xlsx');
             } else if (type === 'siswa') {
                 const wsData = [
-                    ['PETUNJUK PENGISIAN DATA SISWA:'],
+                    ['Petunjuk Pengisian Data Siswa:'],
                     ['1. Kolom "No Absen": Diisi nomor urut absen siswa di kelasnya (contoh: 1, 2, 3, dst).'],
                     ['2. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
                     ['3. Kolom "Username Login" & "Password": Gunakan teks unik tanpa spasi untuk login siswa.'],
@@ -4856,12 +4924,13 @@
                     { wch: 16 },
                     { wch: 16 }
                 ];
+                applyExcelTemplateStyles(ws, 5, wsData.length, 5, [0, 4]);
                 XLSX.utils.book_append_sheet(wb, ws, 'Template Siswa');
                 XLSX.writeFile(wb, 'template_data_siswa.xlsx');
             } else if (type === 'wali-siswa') {
                 const kelas = state.currentUser?.kelasBinaan || 'KelasBinaan';
                 const wsData = [
-                    [`PETUNJUK PENGISIAN DATA SISWA KELAS ${kelas}:`],
+                    [`Petunjuk Pengisian Data Siswa Kelas ${kelas}:`],
                     [`1. Kolom "No Absen": Diisi nomor urut absen siswa di kelas ${kelas} (contoh: 1, 2, 3, dst).`],
                     ['2. Kolom "Username Login" & "Password": Gunakan teks unik tanpa spasi untuk login siswa.'],
                     [''],
@@ -4877,6 +4946,7 @@
                     { wch: 18 },
                     { wch: 16 }
                 ];
+                applyExcelTemplateStyles(ws, 4, wsData.length, 4, [0]);
                 XLSX.utils.book_append_sheet(wb, ws, `Siswa ${kelas}`);
                 XLSX.writeFile(wb, `template_siswa_${kelas}.xlsx`);
             }
