@@ -1972,8 +1972,8 @@
         }
 
         // ================= SINKRONISASI DATA DARI CLOUD SUPABASE =================
-        async function syncAllFromSupabase() {
-            if (IS_PREVIEW || !supabase) return;
+        async function syncAllFromSupabase(silent = false) {
+            if (IS_PREVIEW || !supabase) return false;
             try {
                 const [
                     { data: uData, error: uErr },
@@ -2004,12 +2004,78 @@
                 if (aData) state.db.assignments = aData.map(mapAssignmentFromDb);
                 if (subData) state.db.submissions = subData.map(mapSubmissionFromDb);
                 if (schData) state.db.schedules = schData.map(mapScheduleFromDb);
+                return true;
             } catch (err) {
                 console.error("Gagal sinkronisasi data dari Supabase:", err);
-                showToast("Peringatan sinkronisasi database: " + (err.message || err), "error");
+                if (!silent) {
+                    showToast("Peringatan sinkronisasi database: " + (err.message || err), "error");
+                }
+                return false;
             }
         }
         window.syncAllFromSupabase = syncAllFromSupabase;
+
+        // ================= SUPABASE REALTIME SUBSCRIPTION (LIVE UPDATES) =================
+        let realtimeChannel = null;
+        let isSyncingRealtime = false;
+        let realtimeDebounceTimer = null;
+
+        function setupSupabaseRealtime() {
+            if (IS_PREVIEW || !supabase) return;
+            if (realtimeChannel) return; // Saluran realtime sudah aktif
+
+            try {
+                realtimeChannel = supabase.channel('lms-realtime-room')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'schedules' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, handleRealtimeChange)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, handleRealtimeChange)
+                    .subscribe((status, err) => {
+                        console.log('[Realtime] Supabase Channel Status:', status);
+                        if (status === 'SUBSCRIBED') {
+                            console.log('[Realtime] Live updates aktif untuk seluruh tabel LMS.');
+                        }
+                        if (err) {
+                            console.warn('[Realtime] Subscription warning:', err);
+                        }
+                    });
+            } catch (e) {
+                console.warn('[Realtime] Inisialisasi channel gagal:', e);
+            }
+        }
+
+        async function handleRealtimeChange(payload) {
+            console.log('[Realtime] Deteksi perubahan data di server:', payload.table, payload.eventType);
+            
+            // Debounce sinkronisasi agar efisien jika ada banyak update serentak
+            clearTimeout(realtimeDebounceTimer);
+            realtimeDebounceTimer = setTimeout(async () => {
+                if (isSyncingRealtime) return;
+                isSyncingRealtime = true;
+                try {
+                    await syncAllFromSupabase(true);
+                    
+                    // Re-render panel yang sedang aktif di layar
+                    if (state.currentUser && state.activePanel) {
+                        renderActivePanelData(state.activePanel);
+                    }
+                    
+                    // Jika modal evaluasi tugas sedang terbuka, refresh tabel evaluasi
+                    if (currentEvaluatingAssignmentId) {
+                        const modalEval = document.getElementById('modal-evaluasi-tugas');
+                        if (modalEval && !modalEval.classList.contains('hidden')) {
+                            renderEvaluasiTable();
+                        }
+                    }
+                } finally {
+                    isSyncingRealtime = false;
+                }
+            }, 300);
+        }
+        window.setupSupabaseRealtime = setupSupabaseRealtime;
 
         // ================= HELPER KOMPRESI GAMBAR CLIENT-SIDE =================
         async function compressImageIfNeeded(file, maxDimension = 1600, quality = 0.75) {
@@ -2484,8 +2550,14 @@
 
         window.logout = function() {
             customConfirm('Keluar Aplikasi', 'Apakah Anda yakin ingin keluar dari sistem LMS?', async () => {
-                if (!IS_PREVIEW && supabase && state.currentUser?.role === 'admin') {
-                    try { await supabase.auth.signOut(); } catch(e){}
+                if (!IS_PREVIEW && supabase) {
+                    if (realtimeChannel) {
+                        try { supabase.removeChannel(realtimeChannel); } catch(e){}
+                        realtimeChannel = null;
+                    }
+                    if (state.currentUser?.role === 'admin') {
+                        try { await supabase.auth.signOut(); } catch(e){}
+                    }
                 }
                 state.currentUser = null;
                 state.activePanel = '';
@@ -2674,6 +2746,11 @@
             resetLoginButton();
             document.getElementById('view-login').classList.add('hidden');
             document.getElementById('view-app').classList.remove('hidden');
+
+            // Aktifkan Realtime Listener Supabase
+            if (!IS_PREVIEW && supabase) {
+                setupSupabaseRealtime();
+            }
 
             const u = state.currentUser;
             document.getElementById('user-name-display').innerText = u.namaLengkap;
@@ -2868,6 +2945,15 @@
 
             // Panggil fungsi render sesuai panel
             renderActivePanelData(panelId);
+
+            // Auto-sync data terbaru dari Supabase di latar belakang saat berpindah menu
+            if (!IS_PREVIEW && supabase && state.currentUser) {
+                syncAllFromSupabase(true).then((success) => {
+                    if (success && state.activePanel === panelId) {
+                        renderActivePanelData(panelId);
+                    }
+                });
+            }
         };
 
         function renderActivePanelData(panelId) {
@@ -3701,8 +3787,16 @@
             const assignments = state.db.assignments || [];
             const allGurus = (state.db.users || []).filter(usr => usr.role === 'guru');
 
+            // Helper pengecekan kesesuaian rombel kelas binaan
+            const isMatchKelas = (target) => {
+                if (!target) return false;
+                const cTarget = target.trim().toLowerCase();
+                const cBinaan = (kelasBinaan || '').trim().toLowerCase();
+                return cTarget === 'all' || cTarget === cBinaan;
+            };
+
             // 1. Ambil jadwal khusus kelas binaan
-            const classSchedules = schedules.filter(s => s.kelas === kelasBinaan);
+            const classSchedules = schedules.filter(s => isMatchKelas(s.kelas));
 
             // Buat map guru & mapel yang mengajar di kelas binaan
             // Key: guruId (atau guruNama) + '__' + mapel
@@ -3730,7 +3824,42 @@
                 }
             });
 
-            // Bila belum ada jadwal tersusun sama sekali untuk kelas ini, fallback menampilkan seluruh guru dan mapelnya
+            // 2. Sertakan juga setiap guru yang telah menerbitkan materi / tugas untuk kelas binaan ini
+            materials.forEach(m => {
+                if (isMatchKelas(m.targetKelas)) {
+                    const mapelName = m.mapel || 'Umum';
+                    const key = `${m.guruId || m.guruNama}__${mapelName}`;
+                    if (!entryMap.has(key)) {
+                        const guruObj = allGurus.find(g => g.id === m.guruId || g.namaLengkap === m.guruNama);
+                        entryMap.set(key, {
+                            guruId: m.guruId || guruObj?.id,
+                            guruNama: m.guruNama || guruObj?.namaLengkap || 'Guru Pengampu',
+                            guruNip: guruObj?.nomorInduk || '',
+                            mapel: mapelName,
+                            schedules: []
+                        });
+                    }
+                }
+            });
+
+            assignments.forEach(a => {
+                if (isMatchKelas(a.targetKelas)) {
+                    const mapelName = a.mapel || 'Umum';
+                    const key = `${a.guruId || a.guruNama}__${mapelName}`;
+                    if (!entryMap.has(key)) {
+                        const guruObj = allGurus.find(g => g.id === a.guruId || g.namaLengkap === a.guruNama);
+                        entryMap.set(key, {
+                            guruId: a.guruId || guruObj?.id,
+                            guruNama: a.guruNama || guruObj?.namaLengkap || 'Guru Pengampu',
+                            guruNip: guruObj?.nomorInduk || '',
+                            mapel: mapelName,
+                            schedules: []
+                        });
+                    }
+                }
+            });
+
+            // Bila belum ada jadwal maupun kiriman materi/tugas sama sekali, fallback menampilkan seluruh guru dan mapelnya
             if (entryMap.size === 0) {
                 allGurus.forEach(g => {
                     const mapels = (g.mataPelajaran && g.mataPelajaran.length > 0) ? g.mataPelajaran : ['Umum'];
@@ -3750,15 +3879,15 @@
             // Hitung materi dan tugas untuk setiap entri di kelas binaan
             const rows = Array.from(entryMap.values()).map(item => {
                 const matList = materials.filter(m => 
-                    (m.guruId === item.guruId || m.guruNama === item.guruNama) &&
-                    (m.targetKelas === kelasBinaan || m.targetKelas === 'all') &&
-                    (!m.mapel || m.mapel === item.mapel || item.mapel === 'Umum')
+                    (m.guruId === item.guruId || (item.guruNama && m.guruNama === item.guruNama)) &&
+                    isMatchKelas(m.targetKelas) &&
+                    (!m.mapel || !item.mapel || m.mapel.trim().toLowerCase() === item.mapel.trim().toLowerCase() || item.mapel === 'Umum')
                 );
 
                 const asgList = assignments.filter(a => 
-                    (a.guruId === item.guruId || a.guruNama === item.guruNama) &&
-                    (a.targetKelas === kelasBinaan || a.targetKelas === 'all') &&
-                    (!a.mapel || a.mapel === item.mapel || item.mapel === 'Umum')
+                    (a.guruId === item.guruId || (item.guruNama && a.guruNama === item.guruNama)) &&
+                    isMatchKelas(a.targetKelas) &&
+                    (!a.mapel || !item.mapel || a.mapel.trim().toLowerCase() === item.mapel.trim().toLowerCase() || item.mapel === 'Umum')
                 );
 
                 const matCount = matList.length;
@@ -5655,9 +5784,9 @@
             const todayName = hariNames[new Date().getDay()];
 
             const teacherData = guruList.map(g => {
-                const matCount = materials.filter(m => m.guruId === g.id).length;
-                const asgCount = assignments.filter(a => a.guruId === g.id).length;
-                const mySchedules = schedules.filter(s => s.guruId === g.id);
+                const matCount = materials.filter(m => m.guruId === g.id || (m.guruNama && m.guruNama === g.namaLengkap)).length;
+                const asgCount = assignments.filter(a => a.guruId === g.id || (a.guruNama && a.guruNama === g.namaLengkap)).length;
+                const mySchedules = schedules.filter(s => s.guruId === g.id || (s.guruNama && s.guruNama === g.namaLengkap));
                 const scheduledDays = [...new Set(mySchedules.map(s => s.hari))];
 
                 let status = 'pasif';
@@ -6197,8 +6326,60 @@
 
                 const restored = checkAndRestoreSession();
                 resetLoginButton();
+                if (restored) {
+                    setupSupabaseRealtime();
+                }
             }
         });
+
+        // ================= MULTI-DEVICE AUTO SYNC LISTENERS =================
+        // 1. Auto-sync saat tab browser kembali aktif (focus)
+        window.addEventListener('focus', async () => {
+            if (!IS_PREVIEW && supabase && state.currentUser) {
+                const updated = await syncAllFromSupabase(true);
+                if (updated && state.activePanel) {
+                    renderActivePanelData(state.activePanel);
+                }
+                if (currentEvaluatingAssignmentId) {
+                    const modalEval = document.getElementById('modal-evaluasi-tugas');
+                    if (modalEval && !modalEval.classList.contains('hidden')) {
+                        renderEvaluasiTable();
+                    }
+                }
+            }
+        });
+
+        // 2. Auto-sync saat tab browser berubah dari background ke foreground
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && !IS_PREVIEW && supabase && state.currentUser) {
+                const updated = await syncAllFromSupabase(true);
+                if (updated && state.activePanel) {
+                    renderActivePanelData(state.activePanel);
+                }
+                if (currentEvaluatingAssignmentId) {
+                    const modalEval = document.getElementById('modal-evaluasi-tugas');
+                    if (modalEval && !modalEval.classList.contains('hidden')) {
+                        renderEvaluasiTable();
+                    }
+                }
+            }
+        });
+
+        // 3. Heartbeat Polling ringan setiap 20 detik sebagai jaring pengaman jaringan
+        setInterval(async () => {
+            if (!IS_PREVIEW && supabase && state.currentUser) {
+                const updated = await syncAllFromSupabase(true);
+                if (updated && state.activePanel) {
+                    renderActivePanelData(state.activePanel);
+                }
+                if (currentEvaluatingAssignmentId) {
+                    const modalEval = document.getElementById('modal-evaluasi-tugas');
+                    if (modalEval && !modalEval.classList.contains('hidden')) {
+                        renderEvaluasiTable();
+                    }
+                }
+            }
+        }, 20000);
     </script>
 </body>
 </html>
