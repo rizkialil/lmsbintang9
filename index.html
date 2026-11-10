@@ -1123,7 +1123,7 @@
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
                                     <tr>
-                                        <th class="p-3.5">Hari & Jam</th>
+                                        <th class="p-3.5">Hari</th>
                                         <th class="p-3.5">Kelas</th>
                                         <th class="p-3.5">Mata Pelajaran</th>
                                         <th class="p-3.5">Guru Pengampu</th>
@@ -1731,17 +1731,6 @@
                         <option value="Jumat">Jumat</option>
                         <option value="Sabtu">Sabtu</option>
                     </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jam Mulai</label>
-                        <input type="time" id="manage-schedule-mulai" required value="07:30" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jam Selesai</label>
-                        <input type="time" id="manage-schedule-selesai" required value="09:00" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-500">
-                    </div>
                 </div>
 
                 <div>
@@ -4648,11 +4637,9 @@
                 if (colMap.pass === undefined) colMap.pass = 3;
             } else if (currentImportTarget === 'jadwal') {
                 if (colMap.hari === undefined) colMap.hari = 0;
-                if (colMap.jamMulai === undefined) colMap.jamMulai = 1;
-                if (colMap.jamSelesai === undefined) colMap.jamSelesai = 2;
-                if (colMap.kelas === undefined) colMap.kelas = 3;
-                if (colMap.mapel === undefined) colMap.mapel = 4;
-                if (colMap.guru === undefined) colMap.guru = 5;
+                if (colMap.kelas === undefined) colMap.kelas = 1;
+                if (colMap.mapel === undefined) colMap.mapel = 2;
+                if (colMap.guru === undefined) colMap.guru = 3;
             }
 
             // Filter baris data (abaikan baris kosong dan baris petunjuk/keterangan)
@@ -4785,7 +4772,7 @@
                     tbody.appendChild(tr);
                 });
             } else if (currentImportTarget === 'jadwal') {
-                thead.innerHTML = `<tr><th class="p-2">Hari</th><th class="p-2">Jam</th><th class="p-2">Kelas</th><th class="p-2">Mata Pelajaran</th><th class="p-2">Guru Pengampu</th></tr>`;
+                thead.innerHTML = `<tr><th class="p-2">Hari</th><th class="p-2">Kelas</th><th class="p-2">Mata Pelajaran</th><th class="p-2">Guru Pengampu</th></tr>`;
 
                 dataRows.forEach(r => {
                     let hari = (r[colMap.hari] || '').toString().trim();
@@ -4793,41 +4780,6 @@
                     const matchedDay = validDays.find(d => d.toLowerCase() === hari.toLowerCase());
                     if (matchedDay) hari = matchedDay;
                     if (!hari) hari = 'Senin';
-
-                    let jamMulai = (r[colMap.jamMulai] !== undefined && r[colMap.jamMulai] !== null ? r[colMap.jamMulai] : '').toString().trim();
-                    let jamSelesai = (r[colMap.jamSelesai] !== undefined && r[colMap.jamSelesai] !== null ? r[colMap.jamSelesai] : '').toString().trim();
-
-                    // Tangani format jam jika digabung: "07:30 - 09:00"
-                    if (jamMulai.includes('-') && !jamSelesai) {
-                        const parts = jamMulai.split('-');
-                        jamMulai = parts[0].trim();
-                        jamSelesai = parts[1].trim();
-                    }
-
-                    // Format pecahan waktu Excel jika berupa angka
-                    if (typeof r[colMap.jamMulai] === 'number' && r[colMap.jamMulai] < 1) {
-                        const totalMin = Math.round(r[colMap.jamMulai] * 24 * 60);
-                        const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
-                        const m = String(totalMin % 60).padStart(2, '0');
-                        jamMulai = `${h}:${m}`;
-                    }
-                    if (typeof r[colMap.jamSelesai] === 'number' && r[colMap.jamSelesai] < 1) {
-                        const totalMin = Math.round(r[colMap.jamSelesai] * 24 * 60);
-                        const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
-                        const m = String(totalMin % 60).padStart(2, '0');
-                        jamSelesai = `${h}:${m}`;
-                    }
-
-                    if (!jamMulai) jamMulai = '07:30';
-                    if (!jamSelesai) jamSelesai = '09:00';
-                    if (/^\d{1,2}:\d{2}$/.test(jamMulai)) {
-                        const [h, m] = jamMulai.split(':');
-                        jamMulai = `${h.padStart(2, '0')}:${m}`;
-                    }
-                    if (/^\d{1,2}:\d{2}$/.test(jamSelesai)) {
-                        const [h, m] = jamSelesai.split(':');
-                        jamSelesai = `${h.padStart(2, '0')}:${m}`;
-                    }
 
                     const rawKelas = (r[colMap.kelas] || '').toString().trim();
                     const matchKelas = (state.db.classes || []).find(c => c.namaKelas.toLowerCase() === rawKelas.toLowerCase());
@@ -4852,18 +4804,17 @@
                     parsedExcelData.push({
                         type: 'jadwal',
                         hari,
-                        jamMulai,
-                        jamSelesai,
                         kelas,
                         mapel,
                         guruId,
-                        guruNama
+                        guruNama,
+                        jamMulai: '',
+                        jamSelesai: ''
                     });
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="p-2"><span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700">${hari}</span></td>
-                        <td class="p-2 font-mono font-medium">${jamMulai} - ${jamSelesai}</td>
                         <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">${kelas}</span></td>
                         <td class="p-2 font-bold text-slate-900">${mapel}</td>
                         <td class="p-2 text-slate-700">${guruNama}</td>
@@ -4883,7 +4834,7 @@
             if (currentImportTarget === 'jadwal') {
                 let insertedCount = 0;
                 for (const item of parsedExcelData) {
-                    const existingIdx = state.db.schedules.findIndex(s => s.hari === item.hari && s.jamMulai === item.jamMulai && s.kelas === item.kelas);
+                    const existingIdx = state.db.schedules.findIndex(s => s.hari === item.hari && s.kelas === item.kelas && s.mapel === item.mapel);
                     const id = existingIdx !== -1 ? state.db.schedules[existingIdx].id : ('sch_' + Date.now() + '_' + Math.floor(Math.random()*1000));
                     
                     const scheduleObj = {
@@ -4893,8 +4844,8 @@
                         mapel: item.mapel,
                         guruId: item.guruId,
                         guruNama: item.guruNama,
-                        jamMulai: item.jamMulai,
-                        jamSelesai: item.jamSelesai,
+                        jamMulai: '',
+                        jamSelesai: '',
                         createdAt: new Date().toISOString()
                     };
 
@@ -5113,28 +5064,25 @@
                 const wsData = [
                     ['Petunjuk Pengisian Jadwal Pelajaran Sekolah:'],
                     ['1. Kolom "Hari": Diisi salah satu nama hari (Senin, Selasa, Rabu, Kamis, Jumat, Sabtu).'],
-                    ['2. Kolom "Jam Mulai" & "Jam Selesai": Gunakan format 24 jam JJ:MM (contoh: 07:30, 09:00, 10:15).'],
-                    ['3. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
-                    ['4. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + ' atau Nama Lengkap Mata Pelajaran.'],
-                    ['5. Kolom "Guru Pengampu": Diisi Nama Lengkap Guru atau Username Guru yang mengajar.'],
+                    ['2. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
+                    ['3. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + ' atau Nama Lengkap Mata Pelajaran.'],
+                    ['4. Kolom "Guru Pengampu": Diisi Nama Lengkap Guru atau Username Guru yang mengajar.'],
                     [''],
-                    ['Hari', 'Jam Mulai', 'Jam Selesai', 'Kelas', 'Mata Pelajaran', 'Guru Pengampu'],
-                    ['Senin', '07:30', '09:00', '10 A TKJ', 'MTK', 'Ahmad Fauzi, S.Pd'],
-                    ['Senin', '09:00', '10:30', '10 A TKJ', 'ASJ', 'Ahmad Fauzi, S.Pd'],
-                    ['Senin', '07:30', '09:00', '10 B TKJ', 'WD', 'Hendra Gunawan, S.Kom'],
-                    ['Selasa', '07:30', '09:00', '10 A TKJ', 'AIJ', 'Ratna Dewi, M.Pd'],
-                    ['Selasa', '09:00', '10:30', '10 A TKJ', 'TLJ', 'Ratna Dewi, M.Pd']
+                    ['Hari', 'Kelas', 'Mata Pelajaran', 'Guru Pengampu'],
+                    ['Senin', '10 A TKJ', 'MTK', 'Ahmad Fauzi, S.Pd'],
+                    ['Senin', '10 A TKJ', 'ASJ', 'Ahmad Fauzi, S.Pd'],
+                    ['Senin', '10 B TKJ', 'WD', 'Hendra Gunawan, S.Kom'],
+                    ['Selasa', '10 A TKJ', 'AIJ', 'Ratna Dewi, M.Pd'],
+                    ['Selasa', '10 A TKJ', 'TLJ', 'Ratna Dewi, M.Pd']
                 ];
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
                 ws['!cols'] = [
-                    { wch: 14 },
-                    { wch: 14 },
-                    { wch: 14 },
+                    { wch: 16 },
                     { wch: 18 },
-                    { wch: 24 },
+                    { wch: 26 },
                     { wch: 28 }
                 ];
-                applyExcelTemplateStyles(ws, 7, wsData.length, 6, [0, 1, 2, 3]);
+                applyExcelTemplateStyles(ws, 6, wsData.length, 4, [0, 1]);
                 XLSX.utils.book_append_sheet(wb, ws, 'Jadwal Pelajaran');
                 XLSX.writeFile(wb, 'template_jadwal_pelajaran.xlsx');
             }
@@ -6729,7 +6677,7 @@
                 div.className = 'py-2.5 flex items-center justify-between text-xs gap-3 hover:bg-slate-50 px-2 rounded-xl transition';
                 div.innerHTML = `
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="px-2 py-1 rounded-lg bg-purple-50 text-purple-700 font-mono font-bold text-[10px] whitespace-nowrap">${item.jamMulai} - ${item.jamSelesai}</span>
+                        <span class="px-2 py-1 rounded-lg bg-purple-50 text-purple-700 font-bold text-[10px] whitespace-nowrap">${item.hari}</span>
                         <div class="truncate">
                             <p class="font-bold text-slate-900 truncate">${item.guruNama}</p>
                             <p class="text-[11px] text-slate-500 truncate">${item.mapel} &bull; Kelas ${item.kelas}</p>
@@ -6966,12 +6914,14 @@
 
             let list = state.db.schedules || [];
 
-            // Urutkan hari dan jam mulai
+            // Urutkan hari, kelas, dan mapel
             const dayOrder = { 'Senin': 1, 'Selasa': 2, 'Rabu': 3, 'Kamis': 4, 'Jumat': 5, 'Sabtu': 6 };
             list = [...list].sort((a, b) => {
                 const dDiff = (dayOrder[a.hari] || 99) - (dayOrder[b.hari] || 99);
                 if (dDiff !== 0) return dDiff;
-                return (a.jamMulai || '').localeCompare(b.jamMulai || '');
+                const cDiff = (a.kelas || '').localeCompare(b.kelas || '');
+                if (cDiff !== 0) return cDiff;
+                return (a.mapel || '').localeCompare(b.mapel || '');
             });
 
             const filtered = list.filter(item => {
@@ -7018,10 +6968,7 @@
                 tr.className = 'hover:bg-slate-50 transition';
                 tr.innerHTML = `
                     <td class="p-3.5 whitespace-nowrap">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 text-purple-700">${item.hari}</span>
-                            <span class="text-xs font-mono font-medium text-slate-600">${item.jamMulai} - ${item.jamSelesai}</span>
-                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700">${item.hari}</span>
                     </td>
                     <td class="p-3.5 whitespace-nowrap">
                         <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">Kelas ${item.kelas}</span>
@@ -7098,16 +7045,12 @@
                     title.innerText = 'Edit Jadwal Pelajaran';
                     document.getElementById('manage-schedule-id').value = item.id;
                     document.getElementById('manage-schedule-hari').value = item.hari;
-                    document.getElementById('manage-schedule-mulai').value = item.jamMulai || '07:30';
-                    document.getElementById('manage-schedule-selesai').value = item.jamSelesai || '09:00';
                     selectKelas.value = item.kelas;
                     selectMapel.value = item.mapel;
                     selectGuru.value = item.guruId;
                 }
             } else {
                 title.innerText = 'Tambah Jadwal Pelajaran Baru';
-                document.getElementById('manage-schedule-mulai').value = '07:30';
-                document.getElementById('manage-schedule-selesai').value = '09:00';
             }
 
             modal.classList.remove('hidden');
@@ -7123,8 +7066,6 @@
 
             document.getElementById('manage-schedule-id').value = ''; // Kosongkan ID agar tersimpan sebagai record baru
             document.getElementById('manage-schedule-hari').value = item.hari;
-            document.getElementById('manage-schedule-mulai').value = item.jamMulai || '07:30';
-            document.getElementById('manage-schedule-selesai').value = item.jamSelesai || '09:00';
             document.getElementById('manage-schedule-kelas').value = item.kelas;
             document.getElementById('manage-schedule-mapel').value = item.mapel;
             document.getElementById('manage-schedule-guru').value = item.guruId;
@@ -7165,8 +7106,6 @@
             try {
                 const id = document.getElementById('manage-schedule-id').value || ('sch_' + Date.now() + '_' + Math.floor(Math.random()*1000));
                 const hari = document.getElementById('manage-schedule-hari').value;
-                const jamMulai = document.getElementById('manage-schedule-mulai').value;
-                const jamSelesai = document.getElementById('manage-schedule-selesai').value;
                 const kelas = document.getElementById('manage-schedule-kelas').value;
                 const mapel = document.getElementById('manage-schedule-mapel').value;
                 const guruId = document.getElementById('manage-schedule-guru').value;
@@ -7180,8 +7119,8 @@
                     mapel,
                     guruId,
                     guruNama,
-                    jamMulai,
-                    jamSelesai,
+                    jamMulai: '',
+                    jamSelesai: '',
                     createdAt: new Date().toISOString()
                 };
 
@@ -7203,32 +7142,10 @@
                 renderScheduleTable();
 
                 if (keepOpen) {
-                    showToast(`Jadwal ${kelas} (${mapel}) tersimpan! Siap untuk jam berikutnya.`, 'success');
+                    showToast(`Jadwal ${kelas} (${mapel}) tersimpan! Silakan lanjut pilih mapel berikutnya.`, 'success');
 
-                    // Hitung durasi sebelumnya untuk otomatisasi slot berikutnya
-                    let nextMulai = jamSelesai || '09:00';
-                    let nextSelesai = '10:30';
-
-                    try {
-                        const [mH, mM] = jamMulai.split(':').map(Number);
-                        const [sH, sM] = jamSelesai.split(':').map(Number);
-                        let durationMinutes = (sH * 60 + sM) - (mH * 60 + mM);
-                        if (durationMinutes <= 0 || durationMinutes > 300) durationMinutes = 90;
-
-                        const nextStartMinutes = sH * 60 + sM;
-                        const nextEndMinutes = nextStartMinutes + durationMinutes;
-                        const endH = Math.floor(nextEndMinutes / 60) % 24;
-                        const endM = nextEndMinutes % 60;
-                        nextSelesai = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-                    } catch(tErr) {
-                        nextSelesai = '10:30';
-                    }
-
-                    // Reset ID & perbarui jam, pertahankan Hari dan Kelas terpilih
+                    // Reset ID, pertahankan Hari dan Kelas terpilih
                     document.getElementById('manage-schedule-id').value = '';
-                    document.getElementById('manage-schedule-mulai').value = nextMulai;
-                    document.getElementById('manage-schedule-selesai').value = nextSelesai;
-
                     const selectMapel = document.getElementById('manage-schedule-mapel');
                     if (selectMapel) selectMapel.focus();
                 } else {
