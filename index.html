@@ -3066,6 +3066,7 @@
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.id = `nav-desk-${m.id}`;
+                    btn.dataset.highlight = m.highlight ? 'true' : 'false';
                     btn.onclick = () => navigateTo(m.id);
                     btn.className = `w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${m.highlight ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-600 hover:bg-slate-100'}`;
                     btn.innerHTML = `<i class="fa-solid ${m.icon} w-5 text-center"></i> <span>${m.label}</span>`;
@@ -3079,6 +3080,7 @@
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.id = `nav-draw-${m.id}`;
+                    btn.dataset.highlight = m.highlight ? 'true' : 'false';
                     btn.onclick = () => {
                         toggleMobileDrawer(false);
                         navigateTo(m.id);
@@ -3179,28 +3181,32 @@
 
             // Update Active State di Navigasi Desktop
             document.querySelectorAll('#desktop-nav button').forEach(b => {
-                b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700');
-                if (!b.classList.contains('text-emerald-700')) {
-                    b.classList.add('text-slate-600');
+                b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700', 'hover:text-white');
+                if (b.dataset.highlight === 'true') {
+                    b.classList.add('text-emerald-700', 'bg-emerald-50', 'hover:bg-emerald-100');
+                } else {
+                    b.classList.add('text-slate-600', 'hover:bg-slate-100');
                 }
             });
             const activeDesk = document.getElementById(`nav-desk-${panelId}`);
             if (activeDesk) {
-                activeDesk.classList.add('bg-brand-600', 'text-white');
-                activeDesk.classList.remove('text-slate-600', 'text-emerald-700', 'bg-emerald-50');
+                activeDesk.classList.remove('text-slate-600', 'hover:bg-slate-100', 'text-emerald-700', 'bg-emerald-50', 'hover:bg-emerald-100');
+                activeDesk.classList.add('bg-brand-600', 'text-white', 'hover:bg-brand-700', 'hover:text-white');
             }
 
             // Update Active State di Mobile Drawer
             document.querySelectorAll('#drawer-nav button').forEach(b => {
-                b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700');
-                if (!b.classList.contains('text-emerald-700')) {
-                    b.classList.add('text-slate-600');
+                b.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-700', 'hover:text-white');
+                if (b.dataset.highlight === 'true') {
+                    b.classList.add('text-emerald-700', 'bg-emerald-50', 'hover:bg-emerald-100');
+                } else {
+                    b.classList.add('text-slate-600', 'hover:bg-slate-100');
                 }
             });
             const activeDraw = document.getElementById(`nav-draw-${panelId}`);
             if (activeDraw) {
-                activeDraw.classList.add('bg-brand-600', 'text-white');
-                activeDraw.classList.remove('text-slate-600', 'text-emerald-700', 'bg-emerald-50');
+                activeDraw.classList.remove('text-slate-600', 'hover:bg-slate-100', 'text-emerald-700', 'bg-emerald-50', 'hover:bg-emerald-100');
+                activeDraw.classList.add('bg-brand-600', 'text-white', 'hover:bg-brand-700', 'hover:text-white');
             }
 
             // Update Active State di Mobile Bottom Bar (Auto Scroll Center)
@@ -4593,53 +4599,81 @@
             thead.innerHTML = '';
             tbody.innerHTML = '';
 
-            // Cari baris header secara cerdas (mendukung jika ada petunjuk pengisian di baris atas)
+            // Cari baris header secara cerdas & ketat (multi-kolom, abaikan kalimat petunjuk)
             let headerRowIdx = -1;
             const colMap = {};
 
-            for (let i = 0; i < Math.min(rows.length, 15); i++) {
+            for (let i = 0; i < Math.min(rows.length, 25); i++) {
                 const row = rows[i];
                 if (!Array.isArray(row)) continue;
-                const rowStr = row.map(c => (c || '').toString().toLowerCase()).join(' ');
+
+                // Hitung sel yang tidak kosong
+                const nonEmptyCells = row.map(c => (c !== undefined && c !== null ? String(c).trim() : '')).filter(Boolean);
+
+                // Baris header tabel yang sah harus memiliki minimal 3 kolom sel terpisah
+                if (nonEmptyCells.length < 3) continue;
+
+                // Abaikan jika sel pertama adalah kalimat petunjuk atau diawali nomor urut petunjuk (1., 2., dll)
+                const firstCell = nonEmptyCells[0].toLowerCase();
+                if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(firstCell)) continue;
 
                 if (currentImportTarget === 'guru') {
-                    if (rowStr.includes('nama') && (rowStr.includes('user') || rowStr.includes('mapel') || rowStr.includes('wali'))) {
+                    const hasNama = nonEmptyCells.some(c => /nama/i.test(c) && !/kelas|mapel|sekolah/i.test(c));
+                    const hasUserOrMapel = nonEmptyCells.some(c => /user|login|mapel|wali/i.test(c));
+                    if (hasNama && hasUserOrMapel) {
                         headerRowIdx = i;
                         break;
                     }
                 } else if (currentImportTarget === 'jadwal') {
-                    if (rowStr.includes('hari') && (rowStr.includes('jam') || rowStr.includes('mapel') || rowStr.includes('guru') || rowStr.includes('kelas'))) {
+                    const hasHari = nonEmptyCells.some(c => /hari/i.test(c));
+                    const hasMapelOrGuru = nonEmptyCells.some(c => /mapel|guru|kelas/i.test(c));
+                    if (hasHari && hasMapelOrGuru) {
                         headerRowIdx = i;
                         break;
                     }
                 } else {
-                    if (rowStr.includes('nama') && (rowStr.includes('absen') || rowStr.includes('nisn') || rowStr.includes('user') || rowStr.includes('kelas'))) {
+                    // Siswa & Wali-Siswa: harus ada kolom nama spesifik dan kolom pengenal lain (absen/user/pass/kelas)
+                    const hasNama = nonEmptyCells.some(c => /^nama(\s*lengkap|\s*siswa)?$/i.test(c) || (/nama/i.test(c) && !/kelas|mapel/i.test(c)));
+                    const hasOther = nonEmptyCells.some(c => /absen|nisn|user|login|pass|kelas/i.test(c));
+                    if (hasNama && hasOther) {
                         headerRowIdx = i;
                         break;
                     }
                 }
             }
 
-            // Fallback jika tidak terdeteksi spesifik, gunakan baris pertama
+            // Fallback jika tidak terdeteksi spesifik, cari baris pertama dengan >= 3 kolom yang bukan petunjuk
+            if (headerRowIdx === -1) {
+                for (let i = 0; i < Math.min(rows.length, 10); i++) {
+                    const row = rows[i];
+                    if (!Array.isArray(row)) continue;
+                    const nonEmpty = row.filter(c => c !== undefined && c !== null && String(c).trim() !== '');
+                    if (nonEmpty.length >= 3 && !/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(String(nonEmpty[0]).trim())) {
+                        headerRowIdx = i;
+                        break;
+                    }
+                }
+            }
             if (headerRowIdx === -1) headerRowIdx = 0;
 
-            const headers = (rows[headerRowIdx] || []).map(h => (h || '').toString().trim());
+            const headers = (rows[headerRowIdx] || []).map(h => (h !== undefined && h !== null ? String(h).trim() : ''));
 
-            // Deteksi pemetaan indeks kolom secara dinamis & fleksibel
+            // Deteksi pemetaan indeks kolom secara dinamis & spesifik
             headers.forEach((h, idx) => {
                 const low = h.toLowerCase();
+                if (!low) return;
                 if (/hari/i.test(low)) colMap.hari = idx;
                 else if (/mulai|jam\s*mulai/i.test(low)) colMap.jamMulai = idx;
                 else if (/selesai|jam\s*selesai/i.test(low)) colMap.jamSelesai = idx;
                 else if (/guru|pengampu/i.test(low)) colMap.guru = idx;
-                else if (/nama/i.test(low)) colMap.nama = idx;
+                else if (/^(nama|nama\s*lengkap|nama\s*siswa|nama\s*guru)$/i.test(low) || (/nama/i.test(low) && !/kelas|mapel|sekolah|user/i.test(low))) colMap.nama = idx;
                 else if (/username|login/i.test(low)) colMap.user = idx;
                 else if (/password|pass/i.test(low)) colMap.pass = idx;
                 else if (/mapel|mata\s*pelajaran/i.test(low)) colMap.mapel = idx;
                 else if (/wali\s*kelas|is_wali/i.test(low)) colMap.wali = idx;
                 else if (/kelas\s*binaan|binaan/i.test(low)) colMap.binaan = idx;
                 else if (/absen|nisn|induk/i.test(low)) colMap.absen = idx;
-                else if (/kelas/i.test(low)) colMap.kelas = idx;
+                else if (/kelas/i.test(low) && !/binaan|wali/i.test(low)) colMap.kelas = idx;
             });
 
             // Nilai default indeks jika nama header berbeda
@@ -4668,13 +4702,13 @@
                 if (colMap.guru === undefined) colMap.guru = 3;
             }
 
-            // Filter baris data (abaikan baris kosong dan baris petunjuk/keterangan)
+            // Filter baris data (abaikan baris kosong dan baris petunjuk/keterangan/header sisa)
             const dataRows = rows.slice(headerRowIdx + 1).filter(r => {
                 if (!r || r.length === 0) return false;
-                const nonEmpty = r.filter(c => c !== undefined && c !== null && c.toString().trim() !== '');
+                const nonEmpty = r.filter(c => c !== undefined && c !== null && String(c).trim() !== '');
                 if (nonEmpty.length === 0) return false;
-                const firstStr = (nonEmpty[0] || '').toString().toLowerCase().trim();
-                if (firstStr.startsWith('petunjuk') || firstStr.startsWith('catatan') || firstStr.startsWith('*')) return false;
+                const firstStr = String(nonEmpty[0]).toLowerCase().trim();
+                if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(firstStr)) return false;
                 return true;
             });
 
@@ -4682,14 +4716,22 @@
                 thead.innerHTML = `<tr><th class="p-2">Nama Lengkap</th><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Mata Pelajaran (Terbaca)</th><th class="p-2">Wali Kelas?</th><th class="p-2">Kelas Binaan</th></tr>`;
                 
                 dataRows.forEach(r => {
-                    const nama = (r[colMap.nama] || '').toString().trim();
-                    if (!nama) return;
-                    const username = (r[colMap.user] || 'guru_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[colMap.pass] || 'pass123').toString().trim();
-                    const rawMapel = (r[colMap.mapel] || '').toString().trim();
-                    const isWaliStr = (r[colMap.wali] || 'Tidak').toString().toLowerCase().trim();
+                    const rawNama = (r[colMap.nama] !== undefined && r[colMap.nama] !== null ? String(r[colMap.nama]).trim() : '');
+                    if (!rawNama) return;
+                    if (/^(nama|nama\s*lengkap|nama\s*guru)$/i.test(rawNama)) return; // lewati header
+                    if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(rawNama)) return;
+
+                    const rawUser = (r[colMap.user] !== undefined && r[colMap.user] !== null ? String(r[colMap.user]).trim() : '');
+                    if (/^(username|login)$/i.test(rawUser)) return;
+
+                    const rawPass = (r[colMap.pass] !== undefined && r[colMap.pass] !== null ? String(r[colMap.pass]).trim() : '');
+                    const rawMapel = (r[colMap.mapel] !== undefined && r[colMap.mapel] !== null ? String(r[colMap.mapel]).trim() : '');
+                    const isWaliStr = (r[colMap.wali] !== undefined && r[colMap.wali] !== null ? String(r[colMap.wali]).toLowerCase().trim() : 'tidak');
                     const isWali = isWaliStr === 'ya' || isWaliStr === 'true' || isWaliStr === '1' || isWaliStr === 'y';
-                    const kelasBinaan = isWali ? (r[colMap.binaan] || '').toString().trim() : '';
+                    const kelasBinaan = isWali ? (r[colMap.binaan] !== undefined && r[colMap.binaan] !== null ? String(r[colMap.binaan]).trim() : '') : '';
+
+                    const username = rawUser || ('guru_' + rawNama.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15));
+                    const password = rawPass || 'pass123';
 
                     // Resolusi cerdas Kode Mapel / Nama Mapel
                     const mapelResolved = [];
@@ -4711,7 +4753,7 @@
 
                     parsedExcelData.push({
                         role: 'guru',
-                        namaLengkap: nama,
+                        namaLengkap: rawNama,
                         username: username,
                         password: password,
                         nomorInduk: 'NIP-' + Math.floor(Math.random()*100000),
@@ -4722,7 +4764,7 @@
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2 font-bold">${rawNama}</td>
                         <td class="p-2">${username}</td>
                         <td class="p-2">${password}</td>
                         <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-semibold">${mapelResolved.join(', ')}</span></td>
@@ -4735,17 +4777,29 @@
                 thead.innerHTML = `<tr><th class="p-2">No. Absen</th><th class="p-2">Nama Siswa</th><th class="p-2">Username Login</th><th class="p-2">Password</th><th class="p-2">Kelas</th></tr>`;
 
                 dataRows.forEach(r => {
-                    const absen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? r[colMap.absen] : '').toString().trim();
-                    const nama = (r[colMap.nama] || '').toString().trim();
-                    if (!nama) return;
-                    const username = (r[colMap.user] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[colMap.pass] || 'siswa123').toString().trim();
-                    const kelas = (r[colMap.kelas] || '10 A TKJ').toString().trim();
+                    const rawNama = (r[colMap.nama] !== undefined && r[colMap.nama] !== null ? String(r[colMap.nama]).trim() : '');
+                    // Validasi: nama tidak boleh kosong, tidak boleh header, tidak boleh nomor urut petunjuk
+                    if (!rawNama) return;
+                    if (/^(nama|nama\s*lengkap|nama\s*siswa)$/i.test(rawNama)) return; // baris header
+                    if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(rawNama)) return;
+
+                    const rawAbsen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? String(r[colMap.absen]).trim() : '');
+                    if (/^(no|no\s*absen|absen|nisn)$/i.test(rawAbsen)) return;
+
+                    const rawUser = (r[colMap.user] !== undefined && r[colMap.user] !== null ? String(r[colMap.user]).trim() : '');
+                    if (/^(username|username\s*login|login)$/i.test(rawUser)) return;
+
+                    const rawPass = (r[colMap.pass] !== undefined && r[colMap.pass] !== null ? String(r[colMap.pass]).trim() : '');
+                    const rawKelas = (r[colMap.kelas] !== undefined && r[colMap.kelas] !== null ? String(r[colMap.kelas]).trim() : '');
+
+                    const username = rawUser || ('siswa_' + rawNama.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15));
+                    const password = rawPass || 'siswa123';
+                    const kelas = rawKelas || (state.db.classes && state.db.classes.length > 0 ? state.db.classes[0].namaKelas : 'Umum');
 
                     parsedExcelData.push({
                         role: 'siswa',
-                        nomorInduk: absen,
-                        namaLengkap: nama,
+                        nomorInduk: rawAbsen,
+                        namaLengkap: rawNama,
                         username: username,
                         password: password,
                         kelas: kelas,
@@ -4756,8 +4810,8 @@
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="p-2 font-mono font-bold text-brand-600">${absen || '-'}</td>
-                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2 font-mono font-bold text-brand-600">${rawAbsen || '-'}</td>
+                        <td class="p-2 font-bold">${rawNama}</td>
                         <td class="p-2">${username}</td>
                         <td class="p-2">${password}</td>
                         <td class="p-2"><span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold">${kelas}</span></td>
@@ -4770,16 +4824,26 @@
                 const kelas = state.currentUser?.kelasBinaan || '';
 
                 dataRows.forEach(r => {
-                    const absen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? r[colMap.absen] : '').toString().trim();
-                    const nama = (r[colMap.nama] || '').toString().trim();
-                    if (!nama) return;
-                    const username = (r[colMap.user] || 'siswa_' + Math.floor(Math.random()*1000)).toString().trim();
-                    const password = (r[colMap.pass] || 'pass123').toString().trim();
+                    const rawNama = (r[colMap.nama] !== undefined && r[colMap.nama] !== null ? String(r[colMap.nama]).trim() : '');
+                    if (!rawNama) return;
+                    if (/^(nama|nama\s*lengkap|nama\s*siswa)$/i.test(rawNama)) return;
+                    if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(rawNama)) return;
+
+                    const rawAbsen = (r[colMap.absen] !== undefined && r[colMap.absen] !== null ? String(r[colMap.absen]).trim() : '');
+                    if (/^(no|no\s*absen|absen|nisn)$/i.test(rawAbsen)) return;
+
+                    const rawUser = (r[colMap.user] !== undefined && r[colMap.user] !== null ? String(r[colMap.user]).trim() : '');
+                    if (/^(username|username\s*login|login)$/i.test(rawUser)) return;
+
+                    const rawPass = (r[colMap.pass] !== undefined && r[colMap.pass] !== null ? String(r[colMap.pass]).trim() : '');
+
+                    const username = rawUser || ('siswa_' + rawNama.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15));
+                    const password = rawPass || 'pass123';
 
                     parsedExcelData.push({
                         role: 'siswa',
-                        nomorInduk: absen,
-                        namaLengkap: nama,
+                        nomorInduk: rawAbsen,
+                        namaLengkap: rawNama,
                         username: username,
                         password: password,
                         kelas: kelas,
@@ -4790,8 +4854,8 @@
 
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="p-2 font-mono font-bold text-emerald-600">${absen || '-'}</td>
-                        <td class="p-2 font-bold">${nama}</td>
+                        <td class="p-2 font-mono font-bold text-emerald-600">${rawAbsen || '-'}</td>
+                        <td class="p-2 font-bold">${rawNama}</td>
                         <td class="p-2">${username}</td>
                         <td class="p-2">${password}</td>
                     `;
@@ -4801,24 +4865,27 @@
                 thead.innerHTML = `<tr><th class="p-2">Hari</th><th class="p-2">Kelas</th><th class="p-2">Mata Pelajaran</th><th class="p-2">Guru Pengampu</th></tr>`;
 
                 dataRows.forEach(r => {
-                    let hari = (r[colMap.hari] || '').toString().trim();
-                    const validDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                    const matchedDay = validDays.find(d => d.toLowerCase() === hari.toLowerCase());
-                    if (matchedDay) hari = matchedDay;
-                    if (!hari) hari = 'Senin';
+                    let rawHari = (r[colMap.hari] !== undefined && r[colMap.hari] !== null ? String(r[colMap.hari]).trim() : '');
+                    if (!rawHari) return;
+                    if (/^hari$/i.test(rawHari)) return;
+                    if (/^(petunjuk|catatan|\*|\d+[\.\)])/i.test(rawHari)) return;
 
-                    const rawKelas = (r[colMap.kelas] || '').toString().trim();
+                    const validDays = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                    const matchedDay = validDays.find(d => d.toLowerCase() === rawHari.toLowerCase());
+                    let hari = matchedDay || (rawHari || 'Senin');
+
+                    const rawKelas = (r[colMap.kelas] !== undefined && r[colMap.kelas] !== null ? String(r[colMap.kelas]).trim() : '');
                     const matchKelas = (state.db.classes || []).find(c => c.namaKelas.toLowerCase() === rawKelas.toLowerCase());
                     const kelas = matchKelas ? matchKelas.namaKelas : (rawKelas || '10 A TKJ');
 
-                    const rawMapel = (r[colMap.mapel] || '').toString().trim();
+                    const rawMapel = (r[colMap.mapel] !== undefined && r[colMap.mapel] !== null ? String(r[colMap.mapel]).trim() : '');
                     const matchMapel = (state.db.subjects || []).find(s => 
                         (s.kode && s.kode.toLowerCase() === rawMapel.toLowerCase()) ||
                         (s.nama && s.nama.toLowerCase() === rawMapel.toLowerCase())
                     );
                     const mapel = matchMapel ? matchMapel.nama : (rawMapel || 'Mata Pelajaran');
 
-                    const rawGuru = (r[colMap.guru] || '').toString().trim();
+                    const rawGuru = (r[colMap.guru] !== undefined && r[colMap.guru] !== null ? String(r[colMap.guru]).trim() : '');
                     const matchGuru = (state.db.users || []).find(u => u.role === 'guru' && (
                         (u.namaLengkap && u.namaLengkap.toLowerCase() === rawGuru.toLowerCase()) ||
                         (u.username && u.username.toLowerCase() === rawGuru.toLowerCase()) ||
@@ -5042,7 +5109,7 @@
                 const wsData = [
                     ['Petunjuk Pengisian Data Siswa:'],
                     ['1. Kolom "No Absen": Diisi nomor urut absen siswa di kelasnya (contoh: 1, 2, 3, dst).'],
-                    ['2. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
+                    ['2. Kolom "Kelas": Wajib sesuai dengan rombel/kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
                     ['3. Kolom "Username Login" & "Password": Gunakan teks unik tanpa spasi untuk login siswa.'],
                     [''],
                     ['No Absen', 'Nama Lengkap', 'Username Login', 'Password', 'Kelas'],
@@ -5090,7 +5157,7 @@
                 const wsData = [
                     ['Petunjuk Pengisian Jadwal Pelajaran Sekolah:'],
                     ['1. Kolom "Hari": Diisi salah satu nama hari (Senin, Selasa, Rabu, Kamis, Jumat, Sabtu).'],
-                    ['2. Kolom "Kelas": Wajib sesuai dengan nama kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
+                    ['2. Kolom "Kelas": Wajib sesuai dengan rombel/kelas yang terdaftar di sistem (contoh: 10 A TKJ, 10 B TKJ, 10 TSM).'],
                     ['3. Kolom "Mata Pelajaran": Gunakan Kode Mapel' + codeHint + ' atau Nama Lengkap Mata Pelajaran.'],
                     ['4. Kolom "Guru Pengampu": Diisi Nama Lengkap Guru atau Username Guru yang mengajar.'],
                     [''],
